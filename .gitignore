@@ -1,0 +1,9 @@
+target/
+__pycache__/
+*.pyc
+node_modules/
+.wrangler/
+.env
+.env.*
+*.pem
+*.key
