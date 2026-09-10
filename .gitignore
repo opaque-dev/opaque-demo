@@ -7,3 +7,6 @@ node_modules/
 .env.*
 *.pem
 *.key
+.venv/
+.DS_Store
+/deploy/hosted-demo/bin/

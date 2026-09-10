@@ -1,4 +1,4 @@
-//! End-to-end authority checks using disposable, repository-published RSA
+//! End-to-end authority checks using disposable, in-memory RSA
 //! signing material and loopback HTTP fixtures. No live provider credentials.
 use axum::{
     Router,
@@ -33,8 +33,35 @@ use wiremock::{
     matchers::{method, path},
 };
 
-const PRIVATE_FIXTURE: &str = include_str!("../../opaqued/tests/fixtures/test_rsa_key.pem");
-const PUBLIC_FIXTURE: &str = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5+m4fkcL6cuTGRLTSSrF\n7zfrwFFnYRJG1yVmmCwn4q0PXhuWmUu9mo2wg9ftf9BLFspkMqyzxpdfzGTan6J9\n5w7Ad7gbP5R2aDGnVJRTX9dph3cKBgwnDsUa751mYWfr1rsTnoiMIDWzOGsRSdOi\nRzZGCYo3yo4YNB+sNIOFMQ/tc3X558HGCZl3boecDmlwt1lHebe6/+kXRTYLLpIl\nf7u1mw98TYtOenu2SIUOrJKY9VGluMxvGH9e4SExpZaG61wTNsosD20tEBkWUjCo\nxo01adXNjPYKx/mJB3NgCIWacU4NwbZxVRUg5HYR85cq+5I2oNQDwuyNDv7kZQfA\nywIDAQAB\n-----END PUBLIC KEY-----\n";
+// Generate disposable signing material once per test process. This repository
+// builds independently and never reads another checkout's test private key.
+fn fixture_keys() -> &'static (EncodingKey, String) {
+    use aws_lc_rs::{
+        encoding::{AsDer, Pkcs8V1Der, PublicKeyX509Der},
+        rsa::{KeySize, PrivateDecryptingKey},
+    };
+    static KEYS: std::sync::OnceLock<(EncodingKey, String)> = std::sync::OnceLock::new();
+    KEYS.get_or_init(|| {
+        let key = PrivateDecryptingKey::generate(KeySize::Rsa2048).unwrap();
+        let private = AsDer::<Pkcs8V1Der>::as_der(&key).unwrap();
+        let public = AsDer::<PublicKeyX509Der>::as_der(&key.public_key()).unwrap();
+        let pem = |label: &str, bytes: &[u8]| {
+            let body = base64::engine::general_purpose::STANDARD.encode(bytes);
+            let body = body
+                .as_bytes()
+                .chunks(64)
+                .map(|line| std::str::from_utf8(line).unwrap())
+                .collect::<Vec<_>>()
+                .join("\n");
+            format!("-----BEGIN {label}-----\n{body}\n-----END {label}-----\n")
+        };
+        let private = zeroize::Zeroizing::new(pem("PRIVATE KEY", private.as_ref()));
+        (
+            EncodingKey::from_rsa_pem(private.as_bytes()).unwrap(),
+            pem("PUBLIC KEY", public.as_ref()),
+        )
+    })
+}
 
 #[path = "gateway/bounded_demo.rs"]
 mod bounded_demo;
@@ -125,7 +152,7 @@ impl Fixture {
             auth: AuthConfig {
                 issuer: issuer.uri(),
                 resource_audience: format!("{origin}/mcp"),
-                public_key_pem: PUBLIC_FIXTURE.into(),
+                public_key_pem: fixture_keys().1.clone(),
                 admissions: vec![Admission {
                     tenant_id: TenantId::parse("customer-a").unwrap(),
                     subject: "fixture-user".into(),
@@ -323,12 +350,7 @@ impl Fixture {
     fn token(&self, claims: &Value) -> String {
         let mut header = Header::new(Algorithm::RS256);
         header.typ = Some("at+jwt".into());
-        encode(
-            &header,
-            claims,
-            &EncodingKey::from_rsa_pem(PRIVATE_FIXTURE.as_bytes()).unwrap(),
-        )
-        .unwrap()
+        encode(&header, claims, &fixture_keys().0).unwrap()
     }
 
     fn request(&self, method: &str, path: &str, body: Value) -> Request<Body> {
