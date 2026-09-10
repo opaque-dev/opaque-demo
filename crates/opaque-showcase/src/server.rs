@@ -42,6 +42,9 @@ use tokio::sync::{Semaphore, mpsc};
 use uuid::Uuid;
 use zeroize::Zeroizing;
 
+#[path = "../../../assets/brand/embedded.rs"]
+mod brand_assets;
+
 #[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct OAuthConfig {
@@ -354,7 +357,7 @@ impl App {
             .ok_or("chat UI script is missing")?;
         let script_hash =
             base64::engine::general_purpose::STANDARD.encode(Sha256::digest(script.as_bytes()));
-        let csp = HeaderValue::from_str(&format!("default-src 'none'; script-src 'sha256-{script_hash}' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"))
+        let csp = HeaderValue::from_str(&format!("default-src 'none'; script-src 'sha256-{script_hash}' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"))
             .map_err(|_| "chat content policy is invalid")?;
         let bounded_task = if config.fixture_mode && config.organization_demo.is_some() {
             Some(Mutex::new(
@@ -552,6 +555,7 @@ impl App {
 pub fn router(app: Arc<App>) -> Router {
     Router::new()
         .route("/", get(index))
+        .route("/brand/{*path}", get(brand_asset))
         .route("/.well-known/oauth-protected-resource", get(metadata))
         .route("/.well-known/oauth-protected-resource/mcp", get(metadata))
         .route("/auth/login", get(login))
@@ -687,6 +691,12 @@ fn dashboard_html() -> String {
 }
 async fn index() -> Html<String> {
     Html(dashboard_html())
+}
+async fn brand_asset(axum::extract::Path(path): axum::extract::Path<String>) -> Response {
+    match brand_assets::get(&path) {
+        Some(asset) => ([(header::CONTENT_TYPE, asset.content_type)], asset.bytes).into_response(),
+        None => StatusCode::NOT_FOUND.into_response(),
+    }
 }
 async fn metadata(State(app): State<Arc<App>>) -> Json<Value> {
     Json(

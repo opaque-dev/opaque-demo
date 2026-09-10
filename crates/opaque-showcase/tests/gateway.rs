@@ -42,6 +42,9 @@ mod bounded_demo;
 #[path = "gateway/exploration.rs"]
 mod exploration;
 
+#[path = "gateway/brand.rs"]
+mod brand;
+
 struct TestDirectory(PathBuf);
 impl TestDirectory {
     fn new() -> Self {

@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/kcirtapfromspace/opaque",
+  "revision": "f699d05199d2c87bdd6f5e027ab63d4a29cd4a31",
+  "directory": "assets/brand",
+  "files": [
+    {
+      "path": "embedded.rs",
+      "sha256": "bd2634783b2507bc2bf7f0d183b1d777bd509a017c21a6efca009a23e03a3f38"
+    },
+    {
+      "path": "manifest.json",
+      "sha256": "d29761ce2c800bd312faf32d8723b7a5c8991f6101a3eafb574d67dee7def38f"
+    },
+    {
+      "path": "fonts/archivo-variable.ttf",
+      "sha256": "0e094a7d3c7c4c25cf1310c4b30014f1dae9332220b1c2c88f4fa996f0b05053"
+    },
+    {
+      "path": "fonts/archivo-variable-italic.ttf",
+      "sha256": "305d13b4eb80e62f7d517f78d7c045250d977552a420f2dbed906f314e761305"
+    },
+    {
+      "path": "fonts/ibm-plex-mono-regular.ttf",
+      "sha256": "6a3412f058c7d8dfd9170c41e85ade48e5156ecb89356110ca57a0a27734af46"
+    },
+    {
+      "path": "fonts/ibm-plex-mono-italic.ttf",
+      "sha256": "3362fc791b0652193328b862c1c5f23a789bc7288b1617fa63302f88689a2a34"
+    },
+    {
+      "path": "fonts/ibm-plex-mono-bold.ttf",
+      "sha256": "ac27abd6450a64dd94467580a02fe6235156d5b92f2926ebbc8e7489df64e0be"
+    },
+    {
+      "path": "fonts/ibm-plex-mono-bold-italic.ttf",
+      "sha256": "af4e05a761e98c1adf064c48a6352c9bec1a6ad70982cd2a544149323391f98e"
+    },
+    {
+      "path": "licenses/archivo-OFL.txt",
+      "sha256": "108b4e57c9c796d3d38d0428ca7ee39de47ad93187302718d9b2d8864b9b716b"
+    },
+    {
+      "path": "licenses/ibm-plex-mono-OFL.txt",
+      "sha256": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da"
+    },
+    {
+      "path": "opaque.css",
+      "sha256": "1dab89c5cd046f7e5699d723cf1c01d8c9ba0a1ff7311addb143201233c39adb"
+    },
+    {
+      "path": "opaque-mark.svg",
+      "sha256": "1dc92e93044c5521633c2802041f5fb8af5f3228f261e8b30d5a379b35c89c59"
+    }
+  ]
+}
