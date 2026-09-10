@@ -4,7 +4,8 @@ import vm from 'node:vm';
 import {test} from 'node:test';
 import {validateContact} from '../src/leads.mjs';
 
-function ui({now=Date.now(),hidden=false,search='',hash='',referrer='',storage=new Map()}={}){
+// Keep session deadlines and the VM on one deterministic fixture clock.
+function ui({now=0,hidden=false,search='',hash='',referrer='',storage=new Map()}={}){
   const html=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
   const code=html.split('<script>')[1].split('</script>')[0].replace(/\ninit\(\);\s*$/,'');
   const ids=new Map(),listeners=new Map(),timers=new Map(),backgroundErrors=[];let timerId=0;
@@ -46,17 +47,17 @@ test('bot verification cannot be bypassed by a missing site key',async()=>{
 test('only a service-ready unexpired session reveals the workspace',()=>{
   const app=ui();
   for(const state of ['queued','provisioning','cleaning','expired','failed','cancelled','quarantined']){
-    app.model.session=session(state,{expires_at:Date.now()+600000});app.render();assert.equal(app.el('workspace').hidden,true,state);
+    app.model.session=session(state,{expires_at:app.testClock.now()+600000});app.render();assert.equal(app.el('workspace').hidden,true,state);
   }
-  app.model.session=session('ready',{expires_at:Date.now()+600000});app.render();assert.equal(app.el('workspace').hidden,false);
-  app.model.session=session('active',{expires_at:Date.now()-1});app.render();assert.equal(app.el('workspace').hidden,true);assert.match(app.el('countdown-caption').textContent,/Waiting for service confirmation/);assert.equal(app.model.session.state,'active');
+  app.model.session=session('ready',{expires_at:app.testClock.now()+600000});app.render();assert.equal(app.el('workspace').hidden,false);
+  app.model.session=session('active',{expires_at:app.testClock.now()-1});app.render();assert.equal(app.el('workspace').hidden,true);assert.match(app.el('countdown-caption').textContent,/Waiting for service confirmation/);assert.equal(app.model.session.state,'active');
 });
 
 test('workspace links cannot introduce a remote origin, query credential or new path',()=>{
   const app=ui();
   for(const value of ['https://attacker.example/','//attacker.example/','/workspace?token=secret','javascript:alert(1)','/demo/admin'])assert.equal(app.safeWorkspace(value),null);
   assert.equal(app.safeWorkspace('/workspace'),'/workspace');
-  app.model.session=session('ready',{expires_at:Date.now()+600000,workspace_url:'https://attacker.example/'});app.render();assert.equal(app.el('workspace').hidden,true);
+  app.model.session=session('ready',{expires_at:app.testClock.now()+600000,workspace_url:'https://attacker.example/'});app.render();assert.equal(app.el('workspace').hidden,true);
 });
 
 test('queue position is displayed only when the service supplies a positive integer',()=>{
@@ -73,7 +74,7 @@ test('session details show the visitor position and duration without service cap
   assert.equal(app.el('session-length').textContent,'10 min');
   assert.equal(app.el('queue-position').textContent,'04');
   assert.equal(app.el('queue-position').hidden,false);
-  app.model.session=session('ready',{expires_at:Date.now()+600000});app.render();
+  app.model.session=session('ready',{expires_at:app.testClock.now()+600000});app.render();
   assert.equal(app.el('queue-position').hidden,true);
   assert.equal(app.el('workspace').hidden,false);
 });
@@ -94,7 +95,7 @@ test('Turnstile uses the official explicit widget with expiry handling',async()=
 });
 
 test('failed status checks retain confirmed state and close workspace access',async()=>{
-  const app=ui();app.model.session=session('active',{expires_at:Date.now()+600000});app.render();
+  const app=ui();app.model.session=session('active',{expires_at:app.testClock.now()+600000});app.render();
   app.fetch=async()=>{throw new Error('network unavailable');};await app.refresh();
   assert.equal(app.model.session.state,'active');assert.equal(app.el('workspace').hidden,true);app.updateCountdown();assert.equal(app.el('workspace').hidden,true);assert.match(app.el('sync-note').textContent,/last confirmed state/);
 });
@@ -111,7 +112,7 @@ test('cleanup and quarantine do not expose cancellation or a new request',()=>{
 });
 
 test('cancel submits an empty body and waits for the server state',async()=>{
-  const app=ui();app.model.session=session('active',{expires_at:Date.now()+600000});const calls=[];
+  const app=ui();app.model.session=session('active',{expires_at:app.testClock.now()+600000});const calls=[];
   app.fetch=async(path,options)=>{calls.push({path,options});return {ok:true,json:async()=>path.endsWith('config')?app.model.config:session('cleaning')};};
   await app.cancel();assert.deepEqual(JSON.parse(calls.find(item=>item.path.endsWith('cancel')).options.body),{});assert.equal(app.model.session.state,'cleaning');assert.equal(app.el('workspace').hidden,true);
 });
@@ -197,11 +198,11 @@ test('failed joins remain visible through successful polls until an explicit ret
 });
 
 test('failed cancellation stays visible while connection errors recover independently',async()=>{
-  const app=ui(),config=app.model.config;app.model.session=session('active',{expires_at:Date.now()+600000});
-  app.fetch=async path=>path.endsWith('cancel')?{ok:false,status:503,json:async()=>({message:'Cancellation could not be confirmed.'})}:{ok:true,json:async()=>path.endsWith('config')?config:session('active',{expires_at:Date.now()+600000})};
+  const app=ui(),config=app.model.config;app.model.session=session('active',{expires_at:app.testClock.now()+600000});
+  app.fetch=async path=>path.endsWith('cancel')?{ok:false,status:503,json:async()=>({message:'Cancellation could not be confirmed.'})}:{ok:true,json:async()=>path.endsWith('config')?config:session('active',{expires_at:app.testClock.now()+600000})};
   await app.cancel();await app.refresh();assert.equal(app.el('error').textContent,'Cancellation could not be confirmed.');
   app.fetch=async()=>{throw new Error('Network unavailable');};await app.refresh();assert.equal(app.model.error,'Network unavailable');assert.equal(app.el('workspace').hidden,true);
-  app.fetch=async path=>({ok:true,json:async()=>path.endsWith('config')?config:session('active',{expires_at:Date.now()+600000})});await app.refresh();
+  app.fetch=async path=>({ok:true,json:async()=>path.endsWith('config')?config:session('active',{expires_at:app.testClock.now()+600000})});await app.refresh();
   assert.equal(app.model.error,null);assert.equal(app.el('error').textContent,'Cancellation could not be confirmed.');assert.equal(app.el('workspace').hidden,false);
   await app.cancel();assert.equal(app.model.actionError,null);assert.equal(app.el('error').hidden,true);
 });
