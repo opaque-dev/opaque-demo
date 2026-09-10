@@ -1,0 +1,62 @@
+name: Standalone demo validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - name: Require private source repository
+        env:
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+        run: test "$REPOSITORY_PRIVATE" = true
+      - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
+        with:
+          toolchain: "1.95.0"
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Build standalone demo
+        run: cargo build --locked --workspace
+      - name: Run Rust fixtures
+        run: cargo test --locked --workspace
+      - name: Lint all Rust targets
+        run: cargo clippy --locked --workspace --all-targets -- -D warnings
+
+  fixtures:
+    name: Browser and Python fixtures
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Require private source repository
+        env:
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+        run: test "$REPOSITORY_PRIVATE" = true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "26.8.1"
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12.11"
+      - name: Run browser and Worker fixtures
+        run: node --test crates/opaque-showcase/tests/*.test.cjs deploy/cloudflare-demo/tests/*.test.mjs
+      - name: Run local script fixtures
+        run: python -B -m unittest discover -s scripts -p 'test_*.py'
+      - name: Run hosted runtime and controller fixtures
+        run: python -B -m unittest discover -s deploy/hosted-demo -p 'test_*.py'
