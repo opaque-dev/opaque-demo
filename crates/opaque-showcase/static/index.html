@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Opaque · Bounded work &amp; portfolio metrics</title>
-<meta name="description" content="Review one bounded task, approve a synthetic metric read, and inspect the service receipt. Explore portfolio chat within its separate session limits.">
+<title>Opaque · Task and portfolio demo</title>
+<meta name="description" content="Review a task that reads fictional loan-application metrics. Approve it, run it once, inspect the result, then try again to see the repeat blocked.">
 <link rel="icon" href="/brand/opaque-mark.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/brand/opaque.css">
 <style>
@@ -225,41 +225,41 @@ body.credit-experience{color-scheme:light;--red:#a03f31;background:var(--bg)}
     <div class="connection" id="connection" data-state="loading" role="status"><span class="connection-dot"></span><span id="connection-label">Checking session</span></div>
   </header>
   <div class="workspace-heading">
-    <div><p class="eyebrow" id="workspace-eyebrow">Authenticated workspace</p><h1 id="customer-name">Connecting to your workspace</h1><div class="identity-caption" id="identity-caption">Identity and permissions come from this session.</div></div>
-    <div class="workspace-identity"><div class="locked-label" id="workspace-binding"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1" stroke="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor"/></svg> Session-bound customer</div><div class="workspace-model" id="workspace-model" hidden><span>Session model</span><strong id="workspace-model-name"></strong><small>Fixed for this session</small></div></div>
+    <div><p class="eyebrow" id="workspace-eyebrow">Authenticated workspace</p><h1 id="customer-name">Connecting to your workspace</h1><div class="identity-caption" id="identity-caption">Checking your role and permissions.</div></div>
+    <div class="workspace-identity"><div class="locked-label" id="workspace-binding"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1" stroke="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="currentColor"/></svg> Customer fixed for this session</div><div class="workspace-model" id="workspace-model" hidden><span>Chat model</span><strong id="workspace-model-name"></strong><small>Fixed for this session</small></div></div>
   </div>
-  <div class="provenance" id="provenance"><strong id="provenance-title">SOURCE PENDING</strong><span id="provenance-copy">Runtime, source, and approval information will appear after authentication.</span></div>
-  <div class="page-error" id="page-error" role="alert" hidden><p id="page-error-text"></p><div class="auth-actions"><a class="signin-link" id="signin" href="/auth/login">Sign in to this customer</a><button class="retry-button" id="reconnect" type="button">Check session</button></div></div>
+  <div class="provenance" id="provenance"><strong id="provenance-title">SOURCE PENDING</strong><span id="provenance-copy">Source and session details appear after sign-in.</span></div>
+  <div class="page-error" id="page-error" role="alert" hidden><p id="page-error-text"></p><div class="auth-actions"><a class="signin-link" id="signin" href="/auth/login">Sign in to the workspace</a><button class="retry-button" id="reconnect" type="button">Check session</button></div></div>
   <section class="organization-panel" id="organization-panel" hidden aria-labelledby="organization-name">
-    <div class="organization-heading"><div><p class="eyebrow">Fictional parent company</p><h2 id="organization-name"></h2><p>Explore preauthorized demo identities. Each selection activates a separate scoped identity for this workspace; it does not grant production access.</p></div><span class="organization-badge">THIS DEMO SESSION ONLY</span></div>
-    <div class="persona-list" id="persona-list" aria-label="Preauthorized demo personas"></div>
+    <div class="organization-heading"><div><p class="eyebrow">Fictional parent company</p><h2 id="organization-name"></h2><p>Switch roles to compare what each can read. These demo roles have no production access.</p></div><span class="organization-badge">THIS DEMO SESSION ONLY</span></div>
+    <div class="persona-list" id="persona-list" aria-label="Demo roles"></div>
     <div class="organization-context"><p id="organization-entitlement"></p><div class="customer-directory" id="customer-directory"></div></div>
-    <form class="support-form" id="support-form" hidden><label for="support-reason">Reason for this customer support case</label><textarea id="support-reason" maxlength="240" rows="2" placeholder="For example: investigate a reported metric discrepancy" aria-describedby="support-reason-note" required></textarea><p id="support-reason-note">Assigned customer only. Up to five minutes, within this session. Do not enter borrower information or secrets.</p><button class="retry-button" id="support-start" type="submit">Start support case</button><button class="retry-button" id="support-dismiss" type="button">Dismiss</button></form>
+    <form class="support-form" id="support-form" hidden><label for="support-reason">Why does this customer need support?</label><textarea id="support-reason" maxlength="240" rows="2" placeholder="For example: check an unexpected manual review rate" aria-describedby="support-reason-note" required></textarea><p id="support-reason-note">Access lasts up to five minutes for the assigned customer. Do not enter borrower information or secrets.</p><button class="retry-button" id="support-start" type="submit">Start support case</button><button class="retry-button" id="support-dismiss" type="button">Dismiss</button></form>
     <div class="support-case" id="support-case" hidden></div><p class="organization-error" id="organization-error" role="alert" hidden></p>
-    <div class="sharing-control" id="sharing-control"><div><h3 id="sharing-title">Question text is hidden</h3><p id="sharing-notice">Sharing is off by default. Only the customer analyst can enable sharing for subsequent accepted questions. Turning it off clears stored question text.</p></div><button class="retry-button" id="sharing-toggle" type="button" hidden>Share future question text</button></div>
+    <div class="sharing-control" id="sharing-control"><div><h3 id="sharing-title">Question text is hidden</h3><p id="sharing-notice">Sharing is off by default. Only the customer analyst can share future accepted questions. Turning it off clears stored question text.</p></div><button class="retry-button" id="sharing-toggle" type="button" hidden>Share future question text</button></div>
   </section>
   <main class="layout">
     <section class="conversation-panel" aria-labelledby="conversation-title">
       <section class="work-task" id="work-task" hidden aria-labelledby="work-title">
-        <div class="work-heading"><div><p class="eyebrow">Bounded work / interactive preview</p><h2 id="work-title">Approve one read. Inspect its receipt.</h2><p>Review exactly what this task may do before it receives authority to run.</p></div><span class="work-state" id="work-state">Checking</span></div>
-        <p class="work-role" id="work-role" hidden>This task is available to the portfolio analyst. This identity cannot approve, run or inspect its metric receipt.</p>
+        <div class="work-heading"><div><p class="eyebrow">Try a task</p><h2 id="work-title">Approve one data read.</h2><p>Review the task, approve it, run once, then try again to see the repeat blocked.</p></div><span class="work-state" id="work-state">Checking</span></div>
+        <p class="work-role" id="work-role" hidden>Switch to Portfolio analyst to approve this task, run it and inspect the result.</p>
         <div id="work-content" hidden>
-          <ol class="work-steps" aria-label="Task lifecycle"><li id="work-step-review">01 Review</li><li id="work-step-approve">02 Human approval</li><li id="work-step-run">03 Run once</li><li id="work-step-receipt">04 Receipt</li></ol>
+          <ol class="work-steps" aria-label="Task steps"><li id="work-step-review">01 Review</li><li id="work-step-approve">02 Approve</li><li id="work-step-run">03 Run once</li><li id="work-step-receipt">04 Inspect result</li></ol>
           <p class="work-lede" id="work-lede"></p>
-          <dl class="work-scope"><div><dt>Customer</dt><dd id="work-customer"></dd></div><div><dt>Acting identity</dt><dd id="work-subject"></dd></div><div><dt>Authority expires</dt><dd id="work-expiry"></dd></div></dl>
-          <details class="work-review"><summary>Inspect the exact task binding</summary><dl><dt>Operation</dt><dd id="work-operation"></dd><dt>Task</dt><dd id="work-id"></dd><dt>Manifest SHA-256</dt><dd id="work-digest"></dd><dt>Source</dt><dd id="work-source"></dd><dt>Client</dt><dd id="work-client"></dd><dt>Identity generation</dt><dd id="work-generation"></dd></dl></details>
+          <dl class="work-scope"><div><dt>Customer</dt><dd id="work-customer"></dd></div><div><dt>Demo identity</dt><dd id="work-subject"></dd></div><div><dt>Task expires</dt><dd id="work-expiry"></dd></div></dl>
+          <details class="work-review"><summary>Inspect task details</summary><dl><dt>Operation</dt><dd id="work-operation"></dd><dt>Task</dt><dd id="work-id"></dd><dt>Manifest SHA-256</dt><dd id="work-digest"></dd><dt>Source</dt><dd id="work-source"></dd><dt>Client</dt><dd id="work-client"></dd><dt>Identity generation</dt><dd id="work-generation"></dd></dl></details>
           <p class="work-notice" id="work-notice"></p>
           <p class="approval-proof" id="work-human-proof" hidden></p>
-          <div class="work-actions"><button class="work-primary" id="work-approve" type="button" hidden>Review &amp; approve</button><button class="work-primary" id="work-run" type="button" hidden>Run once</button><button class="retry-button" id="work-replay" type="button" hidden>Test replay denial</button><button class="retry-button" id="work-revoke" type="button" hidden>Revoke task</button></div>
-          <section class="work-receipt" id="work-receipt" hidden aria-labelledby="work-receipt-title"><h3 id="work-receipt-title">Service receipt · synthetic source observed</h3><div class="work-value" id="work-value"></div><p id="work-samples"></p><p id="work-times"></p><p class="work-hash" id="work-evidence"></p><p>Source response recorded by the demo service; this receipt is unsigned.</p></section>
+          <div class="work-actions"><button class="work-primary" id="work-approve" type="button" hidden>Review &amp; approve</button><button class="work-primary" id="work-run" type="button" hidden>Run once</button><button class="retry-button" id="work-replay" type="button" hidden>Try again</button><button class="retry-button" id="work-revoke" type="button" hidden>Revoke task</button></div>
+          <section class="work-receipt" id="work-receipt" hidden aria-labelledby="work-receipt-title"><h3 id="work-receipt-title">Result from the synthetic source</h3><div class="work-value" id="work-value"></div><p id="work-samples"></p><p id="work-times"></p><p class="work-hash" id="work-evidence"></p><p>The demo service recorded this source response in an unsigned receipt.</p></section>
         </div>
-        <p class="work-status" id="work-status" role="status" aria-live="polite">Checking this identity’s task access.</p><p class="work-error" id="work-error" role="alert" hidden></p>
+        <p class="work-status" id="work-status" role="status" aria-live="polite">Checking whether this role can use the task.</p><p class="work-error" id="work-error" role="alert" hidden></p>
         <div class="work-actions"><button class="retry-button" id="work-refresh" type="button">Check task status</button></div>
-        <p class="work-note">This task’s one-read limit applies to Run once; portfolio chat retains its session limits. Changing demo identity invalidates outstanding task authority.</p>
+        <p class="work-note">Chat has separate session limits. Switching roles cancels this task’s remaining permission to run.</p>
       </section>
       <div id="chat-content">
       <section class="flow-panel" id="flow-panel" data-phase="idle" data-source="unknown" hidden aria-labelledby="flow-title">
-        <div class="flow-heading"><div><p class="flow-eyebrow">Request architecture / this session</p><h2 id="flow-title">Follow the work.</h2></div><button class="flow-motion" id="flow-motion" type="button" aria-pressed="false">Pause motion</button></div>
+        <div class="flow-heading"><div><p class="flow-eyebrow">Chat request</p><h2 id="flow-title">Follow your question.</h2></div><button class="flow-motion" id="flow-motion" type="button" aria-pressed="false">Pause motion</button></div>
         <div class="flow-art" aria-hidden="true">
           <svg viewBox="0 0 660 230" fill="none">
             <path class="flow-grid" d="m40 125 270-100 305 108-277 80Zm55 21L365 45m-180 134L456 77M227 56l307 108M134 89l307 108"/>
@@ -274,49 +274,49 @@ body.credit-experience{color-scheme:light;--red:#a03f31;background:var(--bg)}
             <path class="flow-denied-mark" d="m260 93 13 18m0-18-13 18"/>
           </svg>
         </div>
-        <ol class="flow-labels" aria-label="Observed workflow stages"><li id="flow-stage-request"><strong>01 / Request</strong><span id="flow-request">Waiting</span></li><li id="flow-stage-policy"><strong>02 / Opaque boundary</strong><span id="flow-policy">No check yet</span></li><li id="flow-stage-source"><strong>03 / Customer source</strong><span id="flow-source">Access not reported</span></li><li id="flow-stage-evidence"><strong>04 / Evidence return</strong><span id="flow-result">No result yet</span></li></ol>
-        <div class="flow-summary"><p class="flow-status" id="flow-status" role="status" aria-live="polite">Ask a question to follow its path.</p><small id="flow-signal">Waiting for session events</small></div>
-        <details class="flow-evidence"><summary>Inspect this request’s architecture &amp; events</summary><ol class="flow-trace" id="flow-trace"></ol><p class="flow-proof" id="flow-proof">Only this session’s validated events appear here.</p><p class="flow-note">Chat uses the scoped MCP boundary. The separate one-read task above uses its own confirmation and receipt. An ended answer does not establish runtime shutdown.</p></details>
+        <ol class="flow-labels" aria-label="Observed workflow stages"><li id="flow-stage-request"><strong>01 / Request</strong><span id="flow-request">Waiting</span></li><li id="flow-stage-policy"><strong>02 / Permission check</strong><span id="flow-policy">No check yet</span></li><li id="flow-stage-source"><strong>03 / Data source</strong><span id="flow-source">Access not reported</span></li><li id="flow-stage-evidence"><strong>04 / Result</strong><span id="flow-result">No result yet</span></li></ol>
+        <div class="flow-summary"><p class="flow-status" id="flow-status" role="status" aria-live="polite">Ask a question to follow its path.</p><small id="flow-signal">Waiting for a question</small></div>
+        <details class="flow-evidence"><summary>Inspect request events</summary><ol class="flow-trace" id="flow-trace"></ol><p class="flow-proof" id="flow-proof">Events appear after the service reports them and this page checks them.</p><p class="flow-note">Chat tool calls pass through Opaque’s MCP checks. The task above has its own approval and receipt. An ended answer does not confirm that the runtime has shut down.</p></details>
       </section>
       <div class="panel-heading"><h2 id="conversation-title">Conversation</h2><span class="quiet-label">Read-only metrics</span></div>
       <div class="conversation" id="conversation" aria-label="Conversation history">
-        <div class="welcome" id="welcome"><h2 id="welcome-title">Ask your metrics.<br><span>Inspect the evidence.</span></h2><p id="welcome-copy">Ask a question in your own words. Scoped metric results arrive here with their source times and the tool calls behind them.</p><div class="suggestions" id="suggestions"></div></div>
+        <div class="welcome" id="welcome"><h2 id="welcome-title">Ask about the data.</h2><p id="welcome-copy">Ask about an available metric. Each result includes source times and the tool calls used to get it.</p><div class="suggestions" id="suggestions"></div></div>
       </div>
-      <div class="portfolio-guide" id="portfolio-guide" hidden><h3 class="guide-heading">Explore the permission boundary</h3><div class="boundary-questions" id="boundary-questions"></div><p class="guide-note">These questions test access limits. The demo does not expose borrower records or make lending decisions.</p></div>
-      <aside class="pilot-invitation" id="pilot-invitation" hidden aria-label="Optional Opaque pilot"><p>Have a task you still keep from your agent?<a href="/#pilot-result">Discuss a pilot →</a></p><small>Optional. Return to the pilot form in this browser; your demo session stays with you.</small></aside>
-      <form class="composer" id="composer"><div class="clarification-context" id="clarification-context" hidden><p id="clarification-question"></p><button class="clarification-reset" id="new-question" type="button">New question</button></div><label for="message">Your question</label><textarea id="message" name="message" rows="3" maxlength="2000" placeholder="Ask about an allowed metric…" required disabled></textarea><p class="composer-error" id="composer-error" role="alert" hidden></p><div class="composer-bottom"><span class="composer-hint" id="composer-hint">Waiting for an authenticated session.</span><button class="send-button" id="send" type="submit" disabled><span id="send-label">Ask metrics</span> <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M8 3l5 5-5 5" stroke="currentColor" stroke-width="1.5"/></svg></button><button class="stop-button" id="stop" type="button" hidden><span class="stop-square"></span>Stop</button></div></form>
-      <p class="scope-caption">This session fixes the customer and allowed metric scope. Chat requests cannot change that identity. Results and model text are evidence to inspect, not new permission.</p>
+      <div class="portfolio-guide" id="portfolio-guide" hidden><h3 class="guide-heading">Try an unavailable request</h3><div class="boundary-questions" id="boundary-questions"></div><p class="guide-note">Use these questions to see how the demo handles requests outside the available data.</p></div>
+      <aside class="pilot-invitation" id="pilot-invitation" hidden aria-label="Optional Opaque pilot"><p>Have a task you want your agent to run?<a href="/#pilot-result">Discuss a pilot →</a></p><small>The form opens in this browser and keeps your demo session.</small></aside>
+      <form class="composer" id="composer"><div class="clarification-context" id="clarification-context" hidden><p id="clarification-question"></p><button class="clarification-reset" id="new-question" type="button">New question</button></div><label for="message">Your question</label><textarea id="message" name="message" rows="3" maxlength="2000" placeholder="Ask about an available metric…" required disabled></textarea><p class="composer-error" id="composer-error" role="alert" hidden></p><div class="composer-bottom"><span class="composer-hint" id="composer-hint">Waiting for your session.</span><button class="send-button" id="send" type="submit" disabled><span id="send-label">Ask metrics</span> <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M8 3l5 5-5 5" stroke="currentColor" stroke-width="1.5"/></svg></button><button class="stop-button" id="stop" type="button" hidden><span class="stop-square"></span>Stop</button></div></form>
+      <p class="scope-caption">Chat can read only this customer’s allowed metrics. Questions and answers cannot change those permissions.</p>
       </div>
       <div class="role-notice" id="role-notice" hidden><h2 id="role-notice-title"></h2><p id="role-notice-copy"></p></div>
-      <section class="activity-panel" id="activity-panel" hidden aria-labelledby="activity-title"><div class="activity-heading"><h2 id="activity-title">Organization activity</h2><button class="retry-button" id="activity-refresh" type="button">Refresh activity</button></div><p class="activity-caption" id="activity-caption">Server-filtered requests from this demo session only. Other visitors’ activity and customer metric values are not included.</p><div class="activity-status" id="activity-status" role="status">Waiting for authorized activity.</div><div id="activity-records"></div></section>
+      <section class="activity-panel" id="activity-panel" hidden aria-labelledby="activity-title"><div class="activity-heading"><h2 id="activity-title">Organization activity</h2><button class="retry-button" id="activity-refresh" type="button">Refresh activity</button></div><p class="activity-caption" id="activity-caption">Requests from this demo session only. Customer metric values and other visitors’ activity are excluded.</p><div class="activity-status" id="activity-status" role="status">Waiting for activity.</div><div id="activity-records"></div></section>
     </section>
     <aside class="sidebar" aria-label="Session and metric evidence">
       <details class="dataset-explorer" id="dataset-explorer" hidden open><summary>Explore this dataset</summary><p class="dataset-label" id="dataset-label"></p><div class="dataset-section"><h3>Available measures</h3><div class="dataset-measures" id="dataset-measures"></div></div><div class="dataset-section"><h3>Segments you can ask about</h3><div id="dataset-dimensions"></div></div><div class="dataset-section"><h3>Time &amp; views</h3><div class="dataset-window" id="dataset-windows"></div><p class="dataset-note" id="dataset-coverage"></p></div><p class="dataset-note" id="dataset-entitlement"></p></details>
-      <section class="security-panel" id="security-panel" hidden aria-labelledby="security-title"><div class="security-heading"><h2 id="security-title">Opaque policy layer</h2><span>SERVER ENFORCED</span></div><div class="security-body"><p class="security-intro">The assistant answers your question. Opaque checks this demo session’s customer and allowed tools. This profile is configured for portfolio monitoring.</p><dl class="policy-facts"><dt>Customer</dt><dd id="policy-customer">Pending</dd><dt>Demo role</dt><dd id="policy-persona">Pending</dd><dt>Profile purpose</dt><dd id="policy-purpose">Pending</dd><dt>Dataset</dt><dd id="policy-dataset">Pending</dd><dt>Policy</dt><dd id="policy-id">Pending</dd></dl><div class="policy-tool"><span class="policy-tool-label">Allowed MCP tool</span><span id="policy-tool">Pending</span></div><p class="custody-note">Source credentials stay with the service. The model can receive authorized aggregate evidence.</p></div><div class="policy-ledger"><h3>Latest request · policy evidence</h3><div id="policy-decisions"><p class="policy-empty">No request yet. Decisions appear only when the service reports a check.</p></div></div></section>
-      <section class="aside-section"><h2>Live metric scope</h2><div class="scope-list" id="scope-list"><span class="aside-copy">Checking permissions…</span></div><p class="aside-copy">These measures are available to the live metrics tool. Portfolio query measures appear in the dataset explorer when granted. The service applies the customer boundary to every tool call.</p></section>
+      <section class="security-panel" id="security-panel" hidden aria-labelledby="security-title"><div class="security-heading"><h2 id="security-title">Chat permissions</h2><span>SERVER ENFORCED</span></div><div class="security-body"><p class="security-intro">Opaque checks the customer and allowed tools before the assistant can read portfolio data.</p><dl class="policy-facts"><dt>Customer</dt><dd id="policy-customer">Pending</dd><dt>Demo role</dt><dd id="policy-persona">Pending</dd><dt>Purpose</dt><dd id="policy-purpose">Pending</dd><dt>Dataset</dt><dd id="policy-dataset">Pending</dd><dt>Policy</dt><dd id="policy-id">Pending</dd></dl><div class="policy-tool"><span class="policy-tool-label">Allowed MCP tool</span><span id="policy-tool">Pending</span></div><p class="custody-note">Source credentials stay with the service. The model can receive authorized aggregate evidence.</p></div><div class="policy-ledger"><h3>Latest permission checks</h3><div id="policy-decisions"><p class="policy-empty">Ask a question to see the service’s permission checks.</p></div></div></section>
+      <section class="aside-section"><h2>Available live metrics</h2><div class="scope-list" id="scope-list"><span class="aside-copy">Checking permissions…</span></div><p class="aside-copy">Ask for a current reading of these metrics. Use the dataset explorer for queries over longer periods.</p></section>
       <section class="aside-section"><h2>Session identity</h2><dl class="identity-facts"><dt>Customer</dt><dd id="customer-id">Pending</dd><dt>Signed in</dt><dd id="subject-name">Pending</dd><dt>Runtime</dt><dd id="runtime-name">Pending</dd><dt>Expires</dt><dd id="session-expiry">Pending</dd></dl></section>
-      <section class="aside-section"><h2>Latest live observations</h2><div id="latest-metrics"><p class="aside-copy">No metric result yet. An answer will show when its source was last observed.</p></div></section>
+      <section class="aside-section"><h2>Latest live results</h2><div id="latest-metrics"><p class="aside-copy">No result yet. Results include the latest source event time.</p></div></section>
     </aside>
   </main>
-  <footer class="footer"><span id="footer-product">OPAQUE / CUSTOMER METRICS</span><span>Authority stays scoped. Evidence stays visible.</span></footer>
+  <footer class="footer"><span id="footer-product">OPAQUE / CUSTOMER METRICS</span></footer>
 </div>
 <dialog class="approval-window" id="approval-window" aria-labelledby="approval-title" aria-describedby="approval-intro">
   <header class="approval-header"><div class="approval-brand">OPAQUE<span>HUMAN APPROVAL</span></div><button class="approval-close" id="approval-close" type="button" aria-label="Cancel approval">×</button></header>
   <div class="approval-body">
     <div class="approval-quantity">One task · one source read</div>
-    <h2 id="approval-title" tabindex="-1">Your approval.<br>This work only.</h2>
+    <h2 id="approval-title" tabindex="-1">Approve this task.</h2>
     <p class="approval-lede" id="approval-lede"></p>
-    <p class="approval-intro" id="approval-intro">Authenticate to approve this exact task. Opaque checks your proof before granting its single-use authority.</p>
-    <dl class="approval-scope"><div class="approval-identity"><dt>Acting demo identity</dt><dd id="approval-subject"></dd></div><div><dt>Authority expires</dt><dd id="approval-expiry"></dd></div></dl>
-    <details class="approval-binding"><summary>Review customer, source &amp; task binding</summary><dl><dt>Customer</dt><dd id="approval-customer"></dd><dt>Source</dt><dd id="approval-source"></dd><dt>Task</dt><dd id="approval-task-id"></dd><dt>Manifest SHA-256</dt><dd id="approval-digest"></dd></dl></details>
-    <p class="approval-check" id="approval-check" role="status">Checking the reviewed manifest…</p>
+    <p class="approval-intro" id="approval-intro">Verify your identity to approve this task. You will choose Run once separately to start the read.</p>
+    <dl class="approval-scope"><div class="approval-identity"><dt>Acting demo identity</dt><dd id="approval-subject"></dd></div><div><dt>Task expires</dt><dd id="approval-expiry"></dd></div></dl>
+    <details class="approval-binding"><summary>Inspect customer, source &amp; task details</summary><dl><dt>Customer</dt><dd id="approval-customer"></dd><dt>Source</dt><dd id="approval-source"></dd><dt>Task</dt><dd id="approval-task-id"></dd><dt>Manifest SHA-256</dt><dd id="approval-digest"></dd></dl></details>
+    <p class="approval-check" id="approval-check" role="status">Checking the task details…</p>
     <fieldset class="approval-methods"><legend>Choose how to approve</legend>
       <button class="approval-method" id="approval-passkey" type="button" disabled><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 9a5 5 0 1 0-4 4.9L13 17h3v3h4v-4l-6.1-6.1A5 5 0 0 0 14 9Z" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="1" fill="currentColor"/></svg><span><strong>Passkey or FIDO2 security key</strong><small id="approval-passkey-note">Use your device, password manager or hardware key.</small></span><span class="approval-arrow" aria-hidden="true">↗</span></button>
-      <button class="approval-method" id="approval-oauth" type="button" disabled><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 4 6v6c0 4 4 7 8 9 4-2 8-5 8-9V6l-8-3Z" stroke="currentColor" stroke-width="1.5"/><path d="m8 12 3 3 5-6" stroke="currentColor" stroke-width="1.5"/></svg><span><strong id="approval-oauth-title">Continue with GitHub</strong><small id="approval-oauth-note">Confirm with the connected identity provider.</small></span><span class="approval-arrow" aria-hidden="true">↗</span></button>
+      <button class="approval-method" id="approval-oauth" type="button" disabled><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 4 6v6c0 4 4 7 8 9 4-2 8-5 8-9V6l-8-3Z" stroke="currentColor" stroke-width="1.5"/><path d="m8 12 3 3 5-6" stroke="currentColor" stroke-width="1.5"/></svg><span><strong id="approval-oauth-title">Continue with GitHub</strong><small id="approval-oauth-note">Verify your GitHub identity to approve this task.</small></span><span class="approval-arrow" aria-hidden="true">↗</span></button>
     </fieldset>
     <p class="approval-progress" id="approval-progress" role="status" aria-live="polite"></p><p class="approval-error" id="approval-error" role="alert" hidden></p>
   </div>
-  <footer class="approval-footer"><p>Human authentication is real. Harborlight and its data are synthetic. A temporary demo passkey proves control of your authenticator, not employment or customer membership. Approval does not run the task.</p></footer>
+  <footer class="approval-footer"><p>Identity verification is real; Harborlight and its data are synthetic. A temporary demo passkey proves control of your authenticator. It does not verify employment or customer membership.</p></footer>
 </dialog>
 <script>
 'use strict';
@@ -341,14 +341,12 @@ function timestampText(value) { var date = validDate(value); return date ? date.
 function metricLabel(name) { return name === 'manual_review_rate_percent' ? 'manual review rate' : name; }
 function renderLede(el, manifest, customer, consumed, seconds) {
   el.textContent = '';
-  el.appendChild(document.createTextNode('Reads '));
+  el.appendChild(document.createTextNode('Read '));
   el.appendChild(node('strong', null, metricLabel(manifest.metrics[0])));
   el.appendChild(document.createTextNode(' for '));
   el.appendChild(node('strong', null, customer));
-  if (consumed) { el.appendChild(document.createTextNode(' — already used. This task cannot run again.')); return; }
-  el.appendChild(document.createTextNode(', ' + (manifest.max_uses === 1 ? 'once' : manifest.max_uses + ' times') + ', over a ' + manifest.window_secs + '-second window, '));
-  el.appendChild(node('strong', null, seconds ? seconds + 's left to act' : 'deadline reached'));
-  el.appendChild(document.createTextNode('.'));
+  el.appendChild(document.createTextNode(' ' + (manifest.max_uses === 1 ? 'once' : manifest.max_uses + ' times') + ', using a ' + manifest.window_secs + '-second data window.'));
+  if (consumed) el.appendChild(document.createTextNode(' The single attempt has been used; this task cannot run again.'));
 }
 function scopeMetrics(session) { return Array.isArray(session.allowed_metrics) ? session.allowed_metrics.map(function(metric) { return typeof metric === 'string' ? {id:metric,label:metric} : metric; }).filter(function(metric) { return metric && typeof metric.id === 'string'; }) : []; }
 function datasetContext(session) {
@@ -368,12 +366,12 @@ function renderDataset(session) {
   byId('dataset-label').textContent = dataset.label || dataset.id;
   byId('dataset-measures').replaceChildren();
   dataset.measures.forEach(function(item) { var row = node('div','dataset-measure'); row.appendChild(node('span','',item.label)); row.appendChild(node('small','',item.unit)); byId('dataset-measures').appendChild(row); });
-  if (!dataset.measures.length) byId('dataset-measures').appendChild(node('p','dataset-note','No portfolio measures granted to this identity.'));
+  if (!dataset.measures.length) byId('dataset-measures').appendChild(node('p','dataset-note','This role cannot query portfolio measures.'));
   byId('dataset-dimensions').replaceChildren();
   dataset.dimensions.forEach(function(item) { var row = node('p','dataset-dimension'); row.appendChild(node('strong','',friendlyDimension(item.id))); row.appendChild(node('span','',item.values.map(function(value) { return value.label; }).join(' · '))); byId('dataset-dimensions').appendChild(row); });
   byId('dataset-windows').textContent = dataset.windows_secs.map(periodLabel).join(' · ');
-  byId('dataset-coverage').textContent = 'Synthetic seeded history + live events. ' + dataset.views.map(function(view) { return view[0].toUpperCase() + view.slice(1); }).join(', ') + '. Only complete windows are returned; each result shows its exact period and history coverage.';
-  byId('dataset-entitlement').textContent = dataset.can_query && canChat() ? 'Ask in your own words. The service validates the measures, segments, window and customer for every portfolio query.' : 'Dataset metadata only. This identity does not currently have portfolio query access.';
+  byId('dataset-coverage').textContent = 'Synthetic history and live events. ' + dataset.views.map(function(view) { return view[0].toUpperCase() + view.slice(1); }).join(', ') + '. Results cover complete periods and show their start and end times.';
+  byId('dataset-entitlement').textContent = dataset.can_query && canChat() ? 'Each query is checked against the allowed customer, measures, segments and time period.' : 'You can inspect this dataset’s structure. This role cannot query its data.';
 }
 function isTestSession(session) { return [session.approval_mode,session.runtime && session.runtime.kind,session.source && session.source.kind].some(function(value) { return /test|fixture|stub|synthetic|insecure/i.test(value || ''); }); }
 function sourceLabel(value) { return typeof value === 'string' ? value : value && (value.label || value.kind) || 'Unavailable'; }
@@ -438,7 +436,7 @@ function updateComposer() {
   byId('clarification-question').textContent = state.clarification ? 'Answering your previous question: ' + state.clarification.question : '';
   byId('composer-error').textContent = state.composerError || '';
   byId('composer-error').hidden = !state.composerError;
-  byId('composer-hint').textContent = state.controller ? 'Receiving scoped results. Stop closes this stream.' : authorized ? state.clarification ? 'Your original question and this clarification will be sent together.' : 'Enter to send · Shift + Enter for a new line' : state.session ? 'This identity does not currently have customer chat access.' : 'An authenticated session is required.';
+  byId('composer-hint').textContent = state.controller ? 'Receiving results. Stop closes this stream.' : authorized ? state.clarification ? 'Your original question and this clarification will be sent together.' : 'Enter to send · Shift + Enter for a new line' : state.session ? 'This role cannot use customer chat.' : 'Sign in to start a session.';
 }
 function clearClarification() { state.clarification = null; state.composerError = null; byId('clarification-context').hidden = true; byId('clarification-question').textContent = ''; }
 function startNewQuestion() { clearClarification(); updateComposer(); byId('message').focus(); }
@@ -463,7 +461,7 @@ function clearFlow() {
 }
 function startFlow(turn) {
   cancelFlowMotion();
-  state.flow = {turn:turn,identityKey:state.identityKey,phase:'request',status:'Connecting this request…',request:'Started in this browser',policy:'No check yet',source:'Access not reported',result:'No result yet',sourceAccess:null,hasResult:false,tool:null,reason:null,events:[]};
+  state.flow = {turn:turn,identityKey:state.identityKey,phase:'request',status:'Sending your question…',request:'Started in this browser',policy:'No check yet',source:'Access not reported',result:'No result yet',sourceAccess:null,hasResult:false,tool:null,reason:null,events:[]};
   renderFlow();
 }
 function flowIsCurrent(turn) {
@@ -480,7 +478,7 @@ function renderFlow() {
   panel.dataset.phase = flow ? flow.phase : 'idle';
   panel.dataset.source = flow && flow.sourceAccess === true ? 'reported' : 'unknown';
   byId('flow-status').textContent = flow ? flow.status : 'Ask a question to follow its path.';
-  byId('flow-signal').textContent = flow && flow.events.length ? 'Updated ' + clockText(flow.events[flow.events.length-1].at) : 'Waiting for session events';
+  byId('flow-signal').textContent = flow && flow.events.length ? 'Updated ' + clockText(flow.events[flow.events.length-1].at) : flow ? 'Waiting for a response' : 'Waiting for a question';
   ['request','policy','source','result'].forEach(function(key) { byId('flow-' + key).textContent = flow ? flow[key] : {request:'Waiting',policy:'No check yet',source:'Access not reported',result:'No result yet'}[key]; });
   byId('flow-stage-request').dataset.confirmed = String(!!flow);
   byId('flow-stage-policy').dataset.confirmed = String(!!flow && flow.policy === 'Allowed check reported');
@@ -488,7 +486,7 @@ function renderFlow() {
   byId('flow-stage-evidence').dataset.confirmed = String(!!flow && flow.hasResult);
   byId('flow-trace').replaceChildren();
   if (flow) flow.events.forEach(function(event) { var item = node('li');item.appendChild(node('time','',clockText(event.at)));item.appendChild(node('span','',event.text));byId('flow-trace').appendChild(item); });
-  byId('flow-proof').textContent = flow ? 'tool = ' + (flow.tool || 'not reported') + '\nsource_accessed = ' + (flow.sourceAccess === null ? 'not reported' : String(flow.sourceAccess)) + (flow.reason ? '\nlatest policy reason = ' + flow.reason : '') : 'Only this session’s validated events appear here.';
+  byId('flow-proof').textContent = flow ? 'tool = ' + (flow.tool || 'not reported') + '\nsource_accessed = ' + (flow.sourceAccess === null ? 'not reported' : String(flow.sourceAccess)) + (flow.reason ? '\nlatest policy reason = ' + flow.reason : '') : 'Events appear after the service reports them and this page checks them.';
   byId('flow-motion').textContent = state.flowPaused ? 'Resume motion' : 'Pause motion';
   byId('flow-motion').setAttribute('aria-pressed',String(state.flowPaused));
 }
@@ -499,9 +497,9 @@ function receiveFlow(turn, type, data) {
   if (type === 'status') {
     if (stoppedPhase) return;
     if (data.message === 'Selecting an authorized metrics tool…' && !flow.tool && !flow.hasResult) {
-      flow.request = 'Tool selection reported';flow.status = 'Selecting an authorized tool…';recordFlow('Service started tool selection.');motion = 'request';
+      flow.request = 'Tool selection reported';flow.status = 'Choosing an available tool…';recordFlow('Service started tool selection.');motion = 'request';
     } else if (data.message === 'Explaining the latest authorized snapshot…' && flow.hasResult) {
-      flow.status = 'Explaining the authorized evidence…';recordFlow('Service is explaining the received snapshot.');
+      flow.status = 'Explaining the result…';recordFlow('Service is explaining the received snapshot.');
     } else return;
   } else if (type === 'policy') {
     // Caller has already validated tenant, policy, tool and phase in receivePolicy.
@@ -509,30 +507,30 @@ function receiveFlow(turn, type, data) {
     flow.tool = data.tool;
     if (data.outcome === 'denied') {
       cancelFlowMotion();
-      flow.phase = 'denied';flow.policy = 'Denied check reported';flow.status = 'Stopped at the reported policy check.';
+      flow.phase = 'denied';flow.policy = 'Denied check reported';flow.status = 'The permission check blocked this request.';
       if (flow.sourceAccess !== true) { flow.sourceAccess = data.source_accessed === false ? false : null;flow.source = data.source_accessed === false ? 'No access at denied check' : 'Access not reported'; }
       recordFlow('Policy denied this check. ' + (data.source_accessed === false ? 'No source access at this check.' : 'Source access not established by this check.'));
     } else {
-      flow.policy = 'Allowed check reported';flow.phase = 'policy';flow.status = 'Scope check reported by Opaque.';
-      if (data.phase === 'source_read' && data.source_accessed === true) { flow.sourceAccess = true;flow.source = 'Source evidence received';flow.phase = 'source';flow.status = 'Authorized source evidence received.'; }
+      flow.policy = 'Allowed check reported';flow.phase = 'policy';flow.status = 'Opaque reported a passed permission check.';
+      if (data.phase === 'source_read' && data.source_accessed === true) { flow.sourceAccess = true;flow.source = 'Source evidence received';flow.phase = 'source';flow.status = 'Allowed source data received.'; }
       recordFlow({request_check:'Request policy',tool_check:'Tool scope',source_read:'Source evidence'}[data.phase] + ' · allowed');
     }
   } else if (type === 'tool') {
     var context = policyContext(state.session), tools = context && Array.isArray(context.allowed_tools) ? context.allowed_tools : context ? [context.allowed_tool] : [];
     if (!tools.includes(data.name) || !['request','complete'].includes(data.phase)) return;
     flow.tool = data.name;
-    if (data.phase === 'request') { flow.request = 'Tool call requested';flow.status = 'Scoped call requested. Awaiting source evidence.';recordFlow('MCP tool call requested; source access is not yet established.');motion = 'source'; }
+    if (data.phase === 'request') { flow.request = 'Tool call requested';flow.status = 'Tool call requested. Waiting for source data.';recordFlow('MCP tool call requested; source access is not yet established.');motion = 'source'; }
     else recordFlow('MCP tool completion reported.');
   } else if (type === 'result' || type === 'portfolio_result') {
     // These handlers run only after the existing result validation succeeds.
-    flow.hasResult = true;flow.phase = 'evidence';flow.result = 'Validated result received';flow.status = 'Permitted evidence is ready to inspect.';recordFlow('Validated ' + (type === 'portfolio_result' ? 'portfolio' : 'metric') + ' evidence received.');motion = 'evidence';
+    flow.hasResult = true;flow.phase = 'evidence';flow.result = 'Validated result received';flow.status = 'The result is ready to inspect.';recordFlow('Validated ' + (type === 'portfolio_result' ? 'portfolio' : 'metric') + ' evidence received.');motion = 'evidence';
   } else if (type === 'error' || type === 'interrupted') {
     cancelFlowMotion();
-    if (flow.phase !== 'denied') { flow.phase = 'interrupted';flow.status = 'Request interrupted. Last evidence retained.';if (flow.sourceAccess !== true) flow.source = 'Source outcome unconfirmed'; }
+    if (flow.phase !== 'denied') { flow.phase = 'interrupted';flow.status = 'Request interrupted. Received results are kept.';if (flow.sourceAccess !== true) flow.source = 'Source outcome unconfirmed'; }
     recordFlow(flow.phase === 'denied' ? 'Request ended after the denied check.' : 'The stream ended without a confirmed successful outcome.');
   } else if (type === 'done') {
     if (turn.failed || flow.phase === 'denied' || flow.phase === 'interrupted') return;
-    flow.phase = 'complete';flow.request = 'Answer ended';flow.status = flow.hasResult ? 'Answer complete. Evidence retained.' : 'Answer ended. No source result was reported.';
+    flow.phase = 'complete';flow.request = 'Answer ended';flow.status = flow.hasResult ? 'Answer complete. Inspect the result below.' : 'Answer ended. No source result was reported.';
     recordFlow('Application answer ended; runtime shutdown is a separate signal.');
   } else return;
   // A late validated result can be retained without turning a failed stream into success.
@@ -555,7 +553,7 @@ function expireSession(message) {
   clearActivity('Session unavailable. Check the session before requesting activity.');
   byId('organization-panel').hidden = true;
   setConnection('Session unavailable','error');
-  showPageError(message || 'This session has expired. Reauthenticate through the trusted sign-in flow, then check the session again.');
+  showPageError(message || 'This session has expired. Sign in again, then choose Check session.');
   updateComposer();
 }
 function creditExperience(session) { return session && session.experience && session.experience.kind === 'credit_portfolio' ? session.experience : null; }
@@ -574,7 +572,7 @@ function clearConversation() {
 function clearActivity(message) {
   state.activityRevision += 1; state.activitySignature = null;
   byId('activity-records').replaceChildren();
-  byId('activity-status').textContent = message || 'Waiting for authorized activity.';
+  byId('activity-status').textContent = message || 'Waiting for activity.';
   byId('activity-status').className = 'activity-status';
 }
 function organizationError(message) { byId('organization-error').textContent = message || ''; byId('organization-error').hidden = !message; }
@@ -585,9 +583,9 @@ function renderOrganization() {
   if (!org) return;
   byId('organization-name').textContent = org.display_name || org.id;
   var persona = org.membership.persona_id;
-  byId('identity-caption').textContent = org.membership.label + ' · Preauthorized demo identity';
+  byId('identity-caption').textContent = org.membership.label + ' · Demo role';
   byId('policy-persona').textContent = org.membership.label;
-  if (!org.can_query || !org.data_entitlement.allowed) byId('policy-tool').textContent = 'No customer metric tool entitlement';
+  if (!org.can_query || !org.data_entitlement.allowed) byId('policy-tool').textContent = 'No customer metric access';
   byId('persona-list').replaceChildren();
   (Array.isArray(org.personas) ? org.personas : []).forEach(function(item) {
     if (!['customer_analyst','engineer','support'].includes(item.id)) return;
@@ -597,7 +595,7 @@ function renderOrganization() {
     button.appendChild(node('span','',item.id === 'engineer' ? 'Activity metadata' : item.id === 'support' ? 'Assigned customer · timed case' : 'Customer aggregates'));
     button.addEventListener('click',function() { choosePersona(item.id); }); byId('persona-list').appendChild(button);
   });
-  byId('organization-entitlement').textContent = persona === 'engineer' ? 'This identity’s activity grant permits inspection. This identity has no customer metric entitlement.' : 'Customer data entitlement: ' + (org.data_entitlement.display_name || org.data_entitlement.tenant_id) + ' · ' + (canChat() ? 'Read-only aggregates' : 'No active chat access');
+  byId('organization-entitlement').textContent = persona === 'engineer' ? 'This role can inspect request activity, but cannot read customer metrics.' : 'Customer access: ' + (org.data_entitlement.display_name || org.data_entitlement.tenant_id) + ' · ' + (canChat() ? 'Read-only aggregates' : 'No active chat access');
   byId('customer-directory').replaceChildren();
   (Array.isArray(org.customers) ? org.customers : []).forEach(function(item) {
     var entry = node('span'); entry.appendChild(node('strong','',item.display_name || item.id));
@@ -605,22 +603,22 @@ function renderOrganization() {
     byId('customer-directory').appendChild(entry);
   });
   var visibility = org.content_visibility || {};
-  byId('sharing-title').textContent = visibility.sharing_enabled === true ? 'Future question sharing is enabled' : 'Question text is hidden by default';
-  byId('sharing-notice').textContent = visibility.notice || 'Only the customer analyst can share subsequent accepted questions. Turning sharing off clears stored question text.';
+  byId('sharing-title').textContent = visibility.sharing_enabled === true ? 'Future accepted questions will be shared' : 'Question text is hidden';
+  byId('sharing-notice').textContent = visibility.notice || 'Only the customer analyst can share future accepted questions. Turning sharing off clears stored question text.';
   byId('sharing-toggle').hidden = visibility.can_change !== true;
   byId('sharing-toggle').textContent = visibility.sharing_enabled === true ? 'Stop sharing & clear stored text' : 'Share future question text';
   byId('sharing-toggle').disabled = state.organizationBusy;
   byId('support-start').disabled = state.organizationBusy;
   byId('activity-refresh').disabled = state.organizationBusy || state.activityLoading;
-  byId('activity-caption').textContent = persona === 'customer_analyst' ? 'Your requests in this demo session. The service filters activity to this authenticated analyst identity.' : 'Server-filtered requests for this demo session’s assigned customer. Other visitors’ activity and customer metric values are not included.';
+  byId('activity-caption').textContent = persona === 'customer_analyst' ? 'Your requests in this demo session.' : 'Requests for the assigned customer in this demo session. Customer metric values and other visitors’ activity are excluded.';
   if (persona === 'engineer') {
     byId('chat-content').hidden = true; byId('role-notice').hidden = false;
-    byId('role-notice-title').textContent = 'Inspect the request path.';
-    byId('role-notice-copy').textContent = 'Review the model, scoped tool calls, and policy outcomes for this demo. Question text appears only when the customer has explicitly shared it. Customer chat and metric access are unavailable to this engineer identity.';
+    byId('role-notice-title').textContent = 'Inspect request activity.';
+    byId('role-notice-copy').textContent = 'Inspect the model, tool calls and permission checks. Question text appears only if the analyst shares it. This engineer role cannot use customer chat or read metrics.';
   } else if (!canChat()) {
     byId('role-notice').hidden = false;
-    byId('role-notice-title').textContent = 'A current support case is required.';
-    byId('role-notice-copy').textContent = 'Select Customer support and provide a reason to request a new case for the assigned customer. Customer data access remains closed until the service confirms it.';
+    byId('role-notice-title').textContent = 'Start a support case to continue.';
+    byId('role-notice-copy').textContent = 'Choose Customer support and enter a reason. Access opens only after the service confirms the case for the assigned customer.';
   }
   updateSupportCase();
 }
@@ -655,7 +653,7 @@ function toggleSharing() {
 }
 async function changeOrganization(path, body) {
   if (!state.session || state.organizationBusy) return;
-  state.organizationBusy = true; clearFlow(); organizationError(null); clearActivity('Confirming the requested organization change…'); clearWorkTask(); renderWorkTask();
+  state.organizationBusy = true; clearFlow(); organizationError(null); clearActivity('Checking the requested role or sharing change…'); clearWorkTask(); renderWorkTask();
   if (state.controller) state.controller.abort();
   renderOrganization(); updateComposer();
   try {
@@ -702,7 +700,7 @@ function renderApproval() {
   if (!valid) {
     if (approval.controller) approval.controller.abort();
     if (approval.popup) approval.popup.close();
-    byId('approval-progress').textContent = 'This review expired or its authority changed. Close the window and check task status.';
+    byId('approval-progress').textContent = 'The task expired or its permissions changed. Close this window and check task status.';
   }
 }
 function closeApproval() {
@@ -727,23 +725,23 @@ async function openApproval() {
   byId('approval-source').textContent = task.manifest.source_id;
   byId('approval-task-id').textContent = task.task_id;
   byId('approval-digest').textContent = task.manifest_sha256;
-  byId('approval-check').textContent = 'Checking the reviewed manifest…';
+  byId('approval-check').textContent = 'Checking the task details…';
   byId('approval-progress').textContent = ''; approvalError(null);
-  byId('approval-passkey-note').textContent = 'Checking authenticator availability…';
-  byId('approval-oauth-note').textContent = 'Checking identity provider…';
+  byId('approval-passkey-note').textContent = 'Checking passkey support…';
+  byId('approval-oauth-note').textContent = 'Checking GitHub sign-in…';
   dialog.showModal(); byId('approval-title').focus(); renderApproval();
   try {
     await reviewApprovalManifest(task);
     if (!approvalCurrent(revision)) return;
-    byId('approval-check').textContent = 'Manifest matches · one-read bounds checked locally with WASM';
+    byId('approval-check').textContent = 'Task details match · one-read limit verified in this browser';
     var response = await fetch('/api/work-task/approval',{credentials:'same-origin',headers:{Accept:'application/json'},cache:'no-store'});
     var caps = await response.json();
     if (!approvalCurrent(revision)) return;
     if (!response.ok) throw new Error('Approval methods could not be confirmed. Close this window and try again.');
     approval.capabilities = caps; approval.ready = true;
-    byId('approval-passkey-note').textContent = !caps.passkey || !caps.passkey.available ? 'Passkey verification is not configured for this demo.' : typeof PublicKeyCredential === 'undefined' || typeof navigator === 'undefined' || !navigator.credentials ? 'WebAuthn is unavailable in this browser. Use HTTPS and a current browser.' : 'Use your device, password manager or FIDO2 security key. First use creates a demo passkey.';
+    byId('approval-passkey-note').textContent = !caps.passkey || !caps.passkey.available ? 'Passkey approval is unavailable in this demo.' : typeof PublicKeyCredential === 'undefined' || typeof navigator === 'undefined' || !navigator.credentials ? 'WebAuthn is unavailable in this browser. Use HTTPS and a current browser.' : 'Use your device, password manager or FIDO2 security key. First use creates a demo passkey.';
     byId('approval-oauth-title').textContent = caps.oauth && caps.oauth.kind === 'oidc' ? 'Continue with GitHub via Dex' : 'Continue with GitHub';
-    byId('approval-oauth-note').textContent = caps.oauth && caps.oauth.available ? (caps.oauth.kind === 'oidc' ? 'Authenticate through the connected Dex identity provider.' : 'Verify your GitHub identity. No repository or email access is requested.') : 'GitHub login is not connected yet. Passkey approval is available separately.';
+    byId('approval-oauth-note').textContent = caps.oauth && caps.oauth.available ? (caps.oauth.kind === 'oidc' ? 'Authenticate through the connected Dex identity provider.' : 'Verify your GitHub identity. No repository or email access is requested.') : 'GitHub sign-in is unavailable. Check the passkey option above.';
   } catch (error) { if (approval.open && approval.revision === revision) approvalError(error.message); }
   finally { renderApproval(); }
 }
@@ -778,7 +776,7 @@ function acceptHumanApproval(value,revision) {
   if (!approvalCurrent(revision)) return;
   var checked = validateWorkTask(value);
   if (checked.task_id !== approval.task.task_id || checked.manifest_sha256 !== approval.task.manifest_sha256 || checked.state !== 'approved' || !checked.approval || !['webauthn','oidc','github_oauth'].includes(checked.approval.kind)) throw new Error('The service did not confirm human approval for the reviewed task.');
-  approval.submitted = false; state.workTask = checked; state.workNotice = 'Opaque verified your human approval. The source read starts only when you choose Run once.';
+  approval.submitted = false; state.workTask = checked; state.workNotice = 'Approval verified. Choose Run once to start the read.';
   closeApproval(); renderWorkTask(); byId('work-run').focus();
 }
 async function approveWithPasskey() {
@@ -821,7 +819,7 @@ async function approveWithOAuth() {
   var popup = window.open('about:blank','opaque-human-approval','popup,width=520,height=720');
   if (!popup) { approvalError('Allow popups for this site, then select GitHub again.'); return; }
   approval.popup = popup; approval.busy = true; approvalError(null); renderApproval();
-  byId('approval-progress').textContent = 'Preparing task-bound GitHub login…';
+  byId('approval-progress').textContent = 'Preparing GitHub sign-in for this task…';
   try {
     await reviewApprovalManifest(approval.task);
     if (!approvalCurrent(revision)) { popup.close(); return; }
@@ -839,7 +837,7 @@ async function receiveApprovalOAuth(event) {
   approval.transaction = null; approval.popup.close(); approval.popup = null;
   try {
     if (data.error || typeof data.code !== 'string' || !data.code || data.code.length > 8192) throw new Error('The identity provider did not complete authentication. No task approval was submitted.');
-    approval.submitted = true; byId('approval-progress').textContent = 'Opaque is verifying your identity and the exact task binding…';
+    approval.submitted = true; byId('approval-progress').textContent = 'Opaque is verifying your identity and approval for this task…';
     var finished = await approvalPost('finish',Object.assign(approvalReference(approval.task),{transaction_id:data.state,code:data.code,state:data.state}));
     acceptHumanApproval(finished,revision);
   } catch (error) { if (approval.open && approval.revision === revision) { approvalError(error.message); byId('approval-progress').textContent = approval.submitted ? 'Check task status to confirm the final outcome.' : ''; } }
@@ -862,8 +860,8 @@ function clearWorkTask() {
 }
 function validateWorkTask(value) {
   var org = organizationContext(state.session), manifest = value && value.manifest;
-  if (!canWorkTask() || !value || value.simulation !== true || typeof value.task_id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value.task_id) || typeof value.manifest_sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(value.manifest_sha256) || !['planned','approved','reserved','completed','unknown','revoked','expired'].includes(value.state) || typeof value.consumed !== 'boolean' || typeof value.notice !== 'string' || !manifest || manifest.operation !== 'metrics.aggregate.read' || manifest.tenant_id !== state.customerId || manifest.subject !== state.session.subject.id || typeof manifest.client_id !== 'string' || !manifest.client_id || typeof manifest.source_id !== 'string' || manifest.source_id !== state.session.source.label || !Array.isArray(manifest.metrics) || manifest.metrics.length !== 1 || manifest.metrics[0] !== 'manual_review_rate_percent' || manifest.window_secs !== 60 || manifest.max_uses !== 1 || !Number.isSafeInteger(manifest.created_at) || !Number.isSafeInteger(manifest.expires_at) || manifest.expires_at <= manifest.created_at || manifest.expires_at - manifest.created_at > 300 || dateValue(manifest.expires_at).getTime() > dateValue(state.session.expires_at).getTime() || !Number.isSafeInteger(manifest.persona_generation) || manifest.persona_generation < 1) throw new Error('The task did not match this analyst’s bounded scope. It was not displayed.');
-  if (manifest.persona_generation !== org.generation && (value.state !== 'revoked' || value.receipt !== null)) throw new Error('The task belongs to an earlier identity generation. Its authority and receipt were not displayed.');
+  if (!canWorkTask() || !value || value.simulation !== true || typeof value.task_id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value.task_id) || typeof value.manifest_sha256 !== 'string' || !/^[0-9a-f]{64}$/.test(value.manifest_sha256) || !['planned','approved','reserved','completed','unknown','revoked','expired'].includes(value.state) || typeof value.consumed !== 'boolean' || typeof value.notice !== 'string' || !manifest || manifest.operation !== 'metrics.aggregate.read' || manifest.tenant_id !== state.customerId || manifest.subject !== state.session.subject.id || typeof manifest.client_id !== 'string' || !manifest.client_id || typeof manifest.source_id !== 'string' || manifest.source_id !== state.session.source.label || !Array.isArray(manifest.metrics) || manifest.metrics.length !== 1 || manifest.metrics[0] !== 'manual_review_rate_percent' || manifest.window_secs !== 60 || manifest.max_uses !== 1 || !Number.isSafeInteger(manifest.created_at) || !Number.isSafeInteger(manifest.expires_at) || manifest.expires_at <= manifest.created_at || manifest.expires_at - manifest.created_at > 300 || dateValue(manifest.expires_at).getTime() > dateValue(state.session.expires_at).getTime() || !Number.isSafeInteger(manifest.persona_generation) || manifest.persona_generation < 1) throw new Error('The task did not match this analyst’s permissions. It was not displayed.');
+  if (manifest.persona_generation !== org.generation && (value.state !== 'revoked' || value.receipt !== null)) throw new Error('The task belongs to an earlier role selection. Its controls and result were not displayed.');
   if (value.approval !== null && (!value.approval || !['synthetic_demo_confirmation','webauthn','oidc','github_oauth'].includes(value.approval.kind) || !Number.isSafeInteger(value.approval.approved_at) || value.approval.approved_at < manifest.created_at || value.approval.approved_at > manifest.expires_at)) throw new Error('The service returned an invalid task approval.');
   if (value.approval && ['webauthn','oidc','github_oauth'].includes(value.approval.kind)) {
     var verification = value.approval.verification;
@@ -889,7 +887,7 @@ function renderWorkTask() {
   byId('work-error').hidden = !allowed || !state.workError;
   byId('work-error').textContent = allowed ? state.workError || '' : '';
   byId('work-state').textContent = state.organizationBusy ? 'Checking identity' : !allowed ? 'Analyst only' : task ? task.state : 'Awaiting status';
-  byId('work-status').textContent = state.organizationBusy ? 'Confirming the identity change. Earlier task evidence has been cleared.' : !allowed ? 'Task authority and metric receipts are restricted to the analyst identity.' : state.workBusy ? 'Waiting for the service. No automatic execution retry is made.' : state.workLoading ? 'Checking the task’s persisted state…' : state.workNotice || (task ? {planned:'Review the scope above, then open the human approval window.',approved:'Opaque recorded this task’s approval. Run once starts the source read.',reserved:'The one-read allowance is consumed. The service has not reported a completed result.',completed:'The service reported a completed source read. Test replay denial to inspect the one-use boundary.',unknown:'The allowance is consumed and the outcome is uncertain. This task cannot be run again.',revoked:'The service revoked this task. It cannot be approved or run again.',expired:'The service reported that this task expired. It cannot be approved or run again.'}[task.state] : 'Check task status to retrieve this identity’s preview task.');
+  byId('work-status').textContent = state.organizationBusy ? 'Checking the new role. The previous task result has been cleared.' : !allowed ? 'Only the portfolio analyst can use this task and inspect its result.' : state.workBusy ? 'Waiting for the service. The task will not retry automatically.' : state.workLoading ? 'Checking task status…' : state.workNotice || (task ? {planned:'Check the task details, then choose Review & approve.',approved:'Approval recorded. Choose Run once to start the read.',reserved:'The single attempt has been used. A completed result has not been reported.',completed:'The read completed. Inspect the result, then choose Try again to see the repeat blocked.',unknown:'The result is unconfirmed, and the single attempt has been used. This task cannot run again.',revoked:'This task was revoked. It cannot be approved or run again.',expired:'This task expired. It cannot be approved or run again.'}[task.state] : 'Choose Check task status to load this role’s task.');
   if (!allowed || !task) { byId('work-receipt').hidden = true; return; }
   var manifest = task.manifest, deadline = dateValue(manifest.expires_at).getTime(), seconds = Math.max(0,Math.ceil((deadline-Date.now())/1000));
   byId('work-operation').textContent = 'Read one aggregate snapshot';
@@ -953,12 +951,12 @@ async function workTaskAction(action) {
     if (!response.ok) {
       if (response.status >= 400 && response.status < 500) {
         if (response.status === 409 && action === 'execute' && task.state === 'completed' && task.consumed) {
-          state.workNotice = 'Replay request denied. The recorded task remains consumed.' + (value.error && typeof value.error.code === 'string' ? ' Service response: ' + value.error.code + '.' : '') + (value.error && typeof value.error.message === 'string' ? ' ' + value.error.message : '');
+          state.workNotice = 'Repeat blocked. This task’s single attempt is still used.' + (value.error && typeof value.error.code === 'string' ? ' Service response: ' + value.error.code + '.' : '') + (value.error && typeof value.error.message === 'string' ? ' ' + value.error.message : '');
           return;
         }
         if (response.status === 403) state.workTask = null;
         state.workError = 'Service denied this request' + (value.error && typeof value.error.code === 'string' ? ' · ' + value.error.code : '') + '. ' + (value.error && value.error.message || 'Check the current task status.');
-        state.workNotice = 'The service did not grant this action. Check task status for the current persisted state.';
+        state.workNotice = 'The service blocked this action. Choose Check task status for the latest state.';
         return;
       }
       throw new Error('The service could not confirm this action.');
@@ -969,7 +967,7 @@ async function workTaskAction(action) {
   } catch (error) {
     if (revision !== state.workRevision || identityKey !== state.identityKey) return;
     state.workTask = null; state.workError = error.message;
-    state.workNotice = 'The action outcome is not confirmed. Check task status before continuing. No automatic execution retry is made.';
+    state.workNotice = 'The action outcome is not confirmed. Check task status before continuing. The task will not retry automatically.';
   } finally { if (revision === state.workRevision) { state.workBusy = false; renderWorkTask(); } }
 }
 
@@ -983,13 +981,13 @@ function renderActivity(value) {
   var received = value && value.organization;
   if (!org || !received || value.scope !== 'this_lease_only' || received.id !== org.id || received.generation !== org.generation || !received.membership || received.membership.subject !== org.membership.subject || received.membership.persona_id !== org.membership.persona_id || !received.data_entitlement || received.data_entitlement.tenant_id !== state.customerId || !Array.isArray(value.records) || value.records.length > 100) throw new Error('Activity did not match this authenticated organization scope. It was not displayed.');
   organizationContext(Object.assign({},state.session,{organization:received}));
-  if (received.membership.persona_id !== received.active_persona_id || (received.membership.persona_id === 'support' && !supportCaseValid(received))) throw new Error('This persona no longer has current activity access. Check the session or renew the support case.');
+  if (received.membership.persona_id !== received.active_persona_id || (received.membership.persona_id === 'support' && !supportCaseValid(received))) throw new Error('This role can no longer view activity. Check the session or renew the support case.');
   if (value.records.some(function(record) { return !record || record.tenant_id !== state.customerId || typeof record.request_id !== 'string' || !['hidden','shared_by_customer'].includes(record.question_visibility) || (record.question_visibility === 'hidden' && record.question_text != null) || (record.question_text != null && (typeof record.question_text !== 'string' || record.question_text.length > 2000)); })) throw new Error('Activity contained an invalid customer or question visibility binding. It was not displayed.');
   state.session.organization = received; renderOrganization(); updateComposer();
   var signature = JSON.stringify(value.records);
   if (signature !== state.activitySignature) {
     state.activitySignature = signature; byId('activity-records').replaceChildren();
-    if (!value.records.length) byId('activity-records').appendChild(node('p','activity-empty','No requests are visible to this identity yet. Ask an authorized portfolio question as the analyst, then inspect its activity.'));
+    if (!value.records.length) byId('activity-records').appendChild(node('p','activity-empty','No requests yet. Ask a portfolio question as the analyst, then return here to inspect its activity.'));
     value.records.forEach(function(record) {
       var card = node('details','activity-record'); var summary = node('summary');
       summary.appendChild(node('span','activity-title',record.kind === 'chat' ? 'Portfolio question' : record.kind || 'Scoped request'));
@@ -998,7 +996,7 @@ function renderActivity(value) {
       var content = node('div','activity-body'); var facts = node('dl','activity-facts');
       [['Identity',record.persona_id + ' · ' + record.subject],['Model',record.model],['Tool',record.tool || 'No tool reported'],['Metric scope',Array.isArray(record.metrics) && record.metrics.length ? record.metrics.join(', ') : 'None reported'],['Tool calls',record.tool_calls],['Source',activitySource(record)],['Window',record.window_secs == null ? 'Not reported' : record.window_secs + 's'],['Reason',record.reason_code || 'None reported'],['Request',record.request_id]].forEach(function(pair) { facts.appendChild(node('dt','',pair[0])); facts.appendChild(node('dd','',textValue(pair[1]))); });
       content.appendChild(facts);
-      var question = node('div','activity-question'); question.appendChild(node('h3','',record.question_visibility === 'shared_by_customer' ? 'Question shared by customer' : 'Question text concealed'));
+      var question = node('div','activity-question'); question.appendChild(node('h3','',record.question_visibility === 'shared_by_customer' ? 'Question shared by customer' : 'Question text hidden'));
       question.appendChild(node('p','',record.question_visibility === 'shared_by_customer' && typeof record.question_text === 'string' ? record.question_text : 'Question text was not shared or has been cleared.'));
       question.appendChild(node('div','activity-hash',(Number.isInteger(record.question_bytes) ? record.question_bytes + ' bytes' : 'Length unavailable') + (record.question_sha256 ? ' · SHA-256 ' + record.question_sha256 : '')));
       content.appendChild(question); card.appendChild(content); byId('activity-records').appendChild(card);
@@ -1023,7 +1021,7 @@ async function loadActivity() {
   } finally { state.activityLoading = false; byId('activity-refresh').disabled = state.organizationBusy; }
 }
 function fillQuestion(text) { clearClarification(); byId('message').value = String(text); updateComposer(); byId('message').focus(); }
-function resetPolicyEvidence() { state.policyEvents = []; byId('policy-decisions').replaceChildren(node('p','policy-empty','Waiting for this request’s policy checks. No source access claim has been made.')); }
+function resetPolicyEvidence() { state.policyEvents = []; byId('policy-decisions').replaceChildren(node('p','policy-empty','Waiting for permission checks. Source access has not been reported.')); }
 function policyProof(event) {
   if (event.source_accessed === true) return 'Authorized source evidence received';
   if (event.source_accessed === false) return event.outcome === 'denied' ? 'No source access at this denied check' : 'No source access at this check';
@@ -1050,31 +1048,31 @@ function renderExperience(session) {
   var experience = creditExperience(session); var context = policyContext(session);
   document.body.className = experience ? 'credit-experience' : '';
   document.body.setAttribute('data-op-color-scheme', experience ? 'light' : 'dark');
-  document.title = experience ? 'Harborlight · Portfolio intelligence · Opaque demo' : 'Opaque · Customer metrics';
+  document.title = experience ? 'Harborlight · Portfolio demo · Opaque' : 'Opaque · Customer metrics';
   byId('send-label').textContent = experience ? 'Ask portfolio' : 'Ask metrics';
-  byId('footer-product').textContent = experience ? 'OPAQUE / PORTFOLIO INTELLIGENCE' : 'OPAQUE / CUSTOMER METRICS';
+  byId('footer-product').textContent = experience ? 'OPAQUE / PORTFOLIO DEMO' : 'OPAQUE / CUSTOMER METRICS';
   byId('portfolio-guide').hidden = !experience; byId('security-panel').hidden = !experience;
-  byId('product-name').textContent = experience ? 'Portfolio intelligence' : 'Customer metrics';
+  byId('product-name').textContent = experience ? 'Portfolio demo' : 'Customer metrics';
   byId('workspace-eyebrow').textContent = experience ? (session.customer.display_name || session.customer.id) + ' · fictional customer' : 'Authenticated workspace';
-  byId('welcome-title').replaceChildren(node('span','',experience ? 'Understand your application pipeline.' : 'Ask your metrics. Inspect the evidence.'));
-  byId('welcome-copy').textContent = experience ? datasetContext(session) ? 'Compare channels, follow regional trends, or examine processing time by product. Ask in your own words; each answer is grounded in this customer’s authorized aggregate evidence.' : 'Watch application activity and review signals across your portfolio. Every answer is limited to this demo customer’s authorized aggregate metrics.' : 'Ask a question in your own words. Scoped metric results arrive here with their source times and the tool calls behind them.';
+  byId('welcome-title').replaceChildren(node('span','',experience ? 'Ask about loan applications.' : 'Ask about the data.'));
+  byId('welcome-copy').textContent = experience ? datasetContext(session) ? 'Compare channels, follow regional trends or check processing time by product. Choose a question below or write your own.' : 'Ask about application activity, processing time or manual reviews. Choose a question below or write your own.' : 'Ask about an available metric. Each result includes source times and the tool calls used to get it.';
   byId('conversation-title').textContent = experience ? 'Portfolio assistant' : 'Conversation';
-  byId('message').placeholder = experience ? 'Ask about your credit application portfolio…' : 'Ask about an allowed metric…';
+  byId('message').placeholder = experience ? 'Ask about your credit application portfolio…' : 'Ask about an available metric…';
   if (!experience) return;
-  byId('customer-name').textContent = experience.title || 'Portfolio intelligence';
-  byId('identity-caption').textContent = (experience.persona || 'Demo analyst') + ' · Temporary scoped demo session';
+  byId('customer-name').textContent = experience.title || 'Portfolio demo';
+  byId('identity-caption').textContent = (experience.persona || 'Demo analyst') + ' · Temporary demo session';
   byId('provenance-title').textContent = 'SYNTHETIC PORTFOLIO';
-  byId('provenance-copy').textContent = 'Fictional lender and synthetic application events. Runtime: ' + sourceLabel(session.runtime) + '. No real borrower records or lending decisions. ' + (datasetContext(session) ? 'Portfolio queries use seeded history and live events, with complete-window evidence.' : 'Initial rolling windows may be partial.');
+  byId('provenance-copy').textContent = 'Fictional lender and synthetic application events. No real borrower records or lending decisions. ' + (datasetContext(session) ? 'Portfolio queries use synthetic history and live events, and return complete periods.' : 'Initial rolling windows may be partial.');
   byId('policy-customer').textContent = session.customer.display_name || session.customer.id;
   byId('policy-customer').title = session.customer.id;
   byId('policy-persona').textContent = context && context.persona || 'Not reported';
   byId('policy-purpose').textContent = context && context.purpose || 'Not reported';
   byId('policy-dataset').textContent = experience.dataset || 'Not reported';
   byId('policy-id').textContent = context && context.policy_id || 'Not reported';
-  byId('policy-tool').textContent = context && Array.isArray(context.allowed_tools) ? context.allowed_tools.join(' · ') || 'No customer tool entitlement' : context && context.allowed_tool || 'Not reported';
+  byId('policy-tool').textContent = context && Array.isArray(context.allowed_tools) ? context.allowed_tools.join(' · ') || 'No customer tool access' : context && context.allowed_tool || 'Not reported';
   byId('boundary-questions').replaceChildren();
   ['Show borrower names and SSNs','Compare with another lender','Show average credit score'].forEach(function(question) {var button = node('button','boundary-question',question);button.type='button';button.addEventListener('click',function(){fillQuestion(question);});byId('boundary-questions').appendChild(button);});
-  state.policyEvents=[];byId('policy-decisions').replaceChildren(node('p','policy-empty','No request yet. Decisions appear only when the service reports a check.'));
+  state.policyEvents=[];byId('policy-decisions').replaceChildren(node('p','policy-empty','Ask a question to see the service’s permission checks.'));
   if (context && context.latest_decision) receivePolicy(null,context.latest_decision);
 }
 function renderPilotInvitation() {
@@ -1091,7 +1089,7 @@ function renderSession(session) {
   datasetContext(session);
   if (!scopeMetrics(session).length && (!org || org.can_chat)) throw new Error('The server did not provide a complete authenticated customer scope.');
   var expires = validDate(session.expires_at);
-  if (!expires || expires.getTime() <= Date.now()) throw new Error('The authenticated session has expired. Sign in again through the trusted flow.');
+  if (!expires || expires.getTime() <= Date.now()) throw new Error('This session has expired. Sign in again.');
   var identityKey = session.customer.id + ':' + session.subject.id + ':' + (org ? org.id + ':' + org.generation : 'customer');
   if (state.identityKey && state.identityKey !== identityKey) { if (state.controller) state.controller.abort(); clearConversation(); clearActivity(); clearWorkTask(); byId('support-form').hidden = true; }
   state.identityKey = identityKey;
@@ -1115,7 +1113,7 @@ function renderSession(session) {
   byId('scope-list').replaceChildren();
   var metrics = scopeMetrics(session);
   metrics.forEach(function(metric) { var badge = node('span','scope-badge',metric.label || metric.id); badge.title = metric.description || metric.id; byId('scope-list').appendChild(badge); });
-  if (!metrics.length) byId('scope-list').appendChild(node('p','aside-copy','No customer metric entitlement for this identity.'));
+  if (!metrics.length) byId('scope-list').appendChild(node('p','aside-copy','This role cannot read customer metrics.'));
   byId('suggestions').replaceChildren();
   var suggestions = Array.isArray(session.suggested_questions) ? session.suggested_questions.slice(0,datasetContext(session) ? 6 : 3) : metrics.slice(0,2).map(function(metric) { return 'Show me ' + (metric.label || metric.id).toLowerCase() + '.'; });
   suggestions.forEach(function(text) {
@@ -1139,10 +1137,10 @@ async function loadSession() {
   setConnection('Checking session','loading');
   try {
     var response = await fetch('/api/session',{credentials:'same-origin',headers:{Accept:'application/json'},cache:'no-store'});
-    if (response.status === 401) { expireSession('No active customer session. Sign in to this customer to continue. The sign-in service identifies any fixture or test ceremony.'); return; }
+    if (response.status === 401) { expireSession('No active session. Sign in to the workspace to continue.'); return; }
     if (!response.ok) throw new Error('The session service is unavailable. Existing evidence is retained.');
     renderSession(await response.json()); loadActivity(); loadWorkTask();
-  } catch (error) { state.session = null; clearClarification(); clearFlow(); clearWorkTask(); renderWorkTask(); clearActivity('Session authority could not be confirmed.'); byId('organization-panel').hidden = true; setConnection('Connection unavailable','error'); showPageError(error.message); updateComposer(); }
+  } catch (error) { state.session = null; clearClarification(); clearFlow(); clearWorkTask(); renderWorkTask(); clearActivity('Session permissions could not be confirmed.'); byId('organization-panel').hidden = true; setConnection('Connection unavailable','error'); showPageError(error.message); updateComposer(); }
   finally { byId('reconnect').disabled = false; }
 }
 function addMessage(kind, text) {
@@ -1158,10 +1156,10 @@ function addMessage(kind, text) {
 function addTurn() {
   if (creditExperience(state.session)) resetPolicyEvidence();
   var turn = addMessage('assistant','');
-  turn.status = node('div','request-status','Connecting to the scoped agent…'); turn.status.setAttribute('role','status'); turn.element.insertBefore(turn.status,turn.body);
+  turn.status = node('div','request-status','Connecting to the assistant…'); turn.status.setAttribute('role','status'); turn.element.insertBefore(turn.status,turn.body);
   turn.results = node('div','result-grid'); turn.element.insertBefore(turn.results,turn.body);
   turn.evidence = node('details','evidence'); turn.evidence.hidden = true;
-  turn.summary = node('summary','','Tool & evidence trail'); turn.evidence.appendChild(turn.summary);
+  turn.summary = node('summary','','Tools & source details'); turn.evidence.appendChild(turn.summary);
   turn.trail = node('ol','trail'); turn.evidence.appendChild(turn.trail); turn.element.appendChild(turn.evidence);
   turn.cards = new Map(); turn.done = false; turn.failed = false; turn.events = 0; turn.answer = ''; turn.pilotEvidence = false;
   turn.identityKey = state.identityKey;
@@ -1174,7 +1172,7 @@ function addEvidence(turn, title, detail, evidenceId, observedAt) {
   if (detail) content.appendChild(node('div','trail-detail',detail));
   if (evidenceId) content.appendChild(node('div','evidence-id','Evidence · ' + evidenceId));
   item.appendChild(content); turn.trail.appendChild(item); turn.events += 1;
-  turn.summary.textContent = 'Tool & evidence trail · ' + turn.events + ' events'; turn.evidence.hidden = false;
+  turn.summary.textContent = 'Tools & source details · ' + turn.events + ' events'; turn.evidence.hidden = false;
 }
 function metricTime(result) {
   var line = node('div','result-time');
@@ -1268,15 +1266,15 @@ function receivePortfolioResult(turn, result) {
 }
 function handleEvent(turn, type, data) {
   if (!data || typeof data !== 'object' || turn.done) return;
-  if (type === 'status') turn.status.textContent = data.message || 'Working within this session scope…';
+  if (type === 'status') turn.status.textContent = data.message || 'Working on your question…';
   else if (type === 'interpretation') { turn.body.textContent = 'Interpreting your question: ' + String(data.text || ''); turn.status.textContent = 'Investigating with up to ' + String(data.query_count || 1) + ' authorized queries'; }
   else if (type === 'tool') addEvidence(turn,(data.name || 'Scoped tool') + (data.phase ? ' · ' + data.phase : ''),data.message || '',data.evidence_id,data.observed_at);
   else if (type === 'policy') receivePolicy(turn,data);
   else if (type === 'result') receiveResult(turn,data);
   else if (type === 'portfolio_result') receivePortfolioResult(turn,data);
   else if (type === 'answer') { if (data.kind !== 'clarification') clearClarification(); turn.answer = typeof data.delta === 'string' ? turn.answer + data.delta : String(data.text || ''); turn.body.textContent = turn.answer; turn.answerKind = data.kind; if (Array.isArray(data.findings)) data.findings.forEach(function(fact,index) { addEvidence(turn,'Answer source [' + (index + 1) + ']','Validated source finding · ' + String(fact.id || ''),fact.evidence_id); }); }
-  else if (type === 'error') { clearClarification(); turn.failed = true; turn.status.className = 'request-status error'; turn.status.textContent = data.message || 'The scoped request could not complete.'; addEvidence(turn,'Request stopped',data.code || 'request_failed'); if (['session_expired','auth_expired','session_revoked','unauthenticated'].includes(data.code)) expireSession(data.message); }
-  else if (type === 'done') { turn.done = true; if (!turn.failed) { if (turn.answerKind === 'clarification' && turn.question && turn.identityKey === state.identityKey && canChat() && !state.organizationBusy) state.clarification = {identityKey:turn.identityKey,question:turn.question,replies:turn.replies.slice()}; else clearClarification(); turn.status.textContent = turn.answerKind === 'clarification' ? 'Please clarify your question · no source read' : turn.answerKind === 'unsupported' ? 'Outside available data · no source read' : 'Request complete · evidence retained'; turn.status.className = 'request-status'; } if (data.request_id) addEvidence(turn,'Request complete','Request ' + data.request_id); updateComposer(); }
+  else if (type === 'error') { clearClarification(); turn.failed = true; turn.status.className = 'request-status error'; turn.status.textContent = data.message || 'This request could not complete.'; addEvidence(turn,'Request stopped',data.code || 'request_failed'); if (['session_expired','auth_expired','session_revoked','unauthenticated'].includes(data.code)) expireSession(data.message); }
+  else if (type === 'done') { turn.done = true; if (!turn.failed) { if (turn.answerKind === 'clarification' && turn.question && turn.identityKey === state.identityKey && canChat() && !state.organizationBusy) state.clarification = {identityKey:turn.identityKey,question:turn.question,replies:turn.replies.slice()}; else clearClarification(); turn.status.textContent = turn.answerKind === 'clarification' ? 'Please clarify your question · no source read' : turn.answerKind === 'unsupported' ? 'Outside available data · no source read' : 'Request complete · results kept'; turn.status.className = 'request-status'; } if (data.request_id) addEvidence(turn,'Request complete','Request ' + data.request_id); updateComposer(); }
   receiveFlow(turn,type,data);
   if (type === 'done') inviteAfterAnswer(turn);
 }
@@ -1293,7 +1291,7 @@ async function submitMessage(event) {
   clearClarification();
   addMessage('user',message); var turn = addTurn(); turn.question = question; turn.replies = replies; state.active = turn;
   byId('message').value = ''; var controller = new AbortController(); state.controller = controller; updateComposer();
-  setConnection('Receiving scoped results','ready');
+  setConnection('Receiving results','ready');
   try {
     var response = await fetch('/api/chat',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json',Accept:'text/event-stream'},body:JSON.stringify({message:requestMessage}),signal:controller.signal});
     if (response.status === 401) { expireSession(); throw new Error('The session expired. This request did not complete.'); }
