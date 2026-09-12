@@ -1,10 +1,15 @@
 # Opaque demo
 
-Private customer-facing demo collateral for Opaque. This repository builds its
-`opaque-showcase` gateway independently while consuming the public core contract
-as a Git dependency pinned to an exact revision in the root `Cargo.toml`.
-No sibling checkout, copied broker implementation or private core dependency is
-required. `Cargo.lock` fixes the dependency resolution for reproducible checks.
+Build and test the [Opaque demo](https://demo.opaque.info/). Visitors review and
+approve a task that reads fictional loan-application metrics, run it once, inspect
+the result, and try again to see the repeat blocked. Portfolio chat has separate
+session limits and permissions.
+
+This private repository contains the demo gateway, browser UI, and hosting code.
+The `opaque-showcase` gateway consumes the public core contract through a Git
+dependency pinned to an exact revision in [Cargo.toml](Cargo.toml). Build it from
+this checkout; no sibling core checkout is required. `Cargo.lock` fixes dependency
+resolution.
 
 ## Build and validate
 
@@ -23,36 +28,37 @@ python3 -B -m unittest discover -s scripts -p 'test_*.py'
 python3 -B -m unittest discover -s deploy/hosted-demo -p 'test_*.py'
 ```
 
-The Python and Node fixture suites require only their standard runtimes. The
-Rust gateway fixtures generate disposable RSA signing material in memory; they
-do not depend on another repository's private-key fixture. Interactive native
-approval tests remain explicitly ignored in unattended runs. Hosted runtime and
-controller fixtures use local fake APIs/loopback services; these commands do not
-operate a cluster, contact production models, deploy a Worker or publish assets.
+The Python and Node fixtures use only their standard runtimes. Rust gateway
+fixtures generate disposable RSA signing material in memory. Interactive native
+approval tests are explicitly ignored in unattended runs. Hosted runtime and
+controller fixtures use local fake APIs and loopback services. The checks above
+do not change a cluster, contact production models, deploy a Worker, or publish
+assets.
 
-The CI workflow repeats Rust build/tests/Clippy/format checks on Linux and macOS
-and runs browser, Worker and Python fixtures on Linux. It has read-only repository
+The [CI workflow](.github/workflows/ci.yml) runs Rust checks on Linux and macOS,
+and browser, Worker, and Python fixtures on Linux. It has read-only repository
 permissions and no deployment jobs or credentials.
 
 ## Core dependency updates
 
-Change the exact `opaque-core` Git `rev` deliberately in the root `Cargo.toml`,
-regenerate `Cargo.lock` with Cargo, and rerun the complete checks above. Review
-contract changes and the dependency diff together. This repository consumes the
-public core's published contracts; enterprise implementations and private
-validation records do not become transitive core dependencies.
+Update the exact `opaque-core` Git `rev` in the root `Cargo.toml`, regenerate
+`Cargo.lock` with Cargo, and rerun all checks above. Review the contract changes
+and dependency diff together. Keep this dependency on public core contracts;
+enterprise implementations and private validation records belong in their own
+repositories.
 
 ## Contents
 
-- `crates/opaque-showcase` — tenant-scoped OAuth MCP metrics gateway and chat UI.
-- `assets/brand` — reviewed shared visual assets with their own provenance.
-- `deploy/hosted-demo` — demo-specific Kubernetes runtime/controller and fixtures.
-- `deploy/cloudflare-demo` — public-facing Worker source, static UI and fixtures.
-- `examples/gpu-showcase`, `examples/metrics-chat` — demo workflow walkthroughs.
-- `scripts` — demo driving tools, acceptance fixtures and artifact privacy checks.
+- [crates/opaque-showcase](crates/opaque-showcase) — OAuth MCP metrics gateway and chat UI, scoped to each tenant.
+- [assets/brand](assets/brand) — shared visual assets and their provenance.
+- [deploy/hosted-demo](deploy/hosted-demo) — Kubernetes runtime, controller, and fixtures.
+- [deploy/cloudflare-demo](deploy/cloudflare-demo) — public Worker, static UI, and fixtures.
+- [examples/gpu-showcase](examples/gpu-showcase) and [examples/metrics-chat](examples/metrics-chat) — local workflow walkthroughs and setup prerequisites.
+- [scripts](scripts) — demo runners, acceptance fixtures, and artifact privacy checks.
 
-Standalone compilation does not qualify a production deployment. OAuth/native
-review pilots, cluster custody, operational acceptance and the separate security
-branch remain independently tracked work. Keep runtime credentials, generated
-binaries and session artifacts out of source control. Publication or cluster
-changes require their own authorized deployment workflow.
+## Deployment boundary
+
+Builds and fixture tests do not establish production readiness. Validate approval,
+credential custody, and runtime behavior for the intended deployment. Keep runtime
+credentials, generated binaries, and session artifacts out of source control.
+Publish assets or change a cluster through the authorized deployment workflow.
