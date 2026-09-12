@@ -178,7 +178,7 @@ test('queued and active sessions display the durable model binding instead of th
     app.chooseModel('fixture-large');assert.equal(app.model.selectedModelId,'fixture-small');
   }
   app.model.session=session('cancelled',{model:{id:'retired-model',label:'Previously approved model'}});app.render();
-  assert.equal(app.el('model-selection').hidden,false);assert.match(app.el('session-model-note').textContent,/previous session/);app.chooseModel('fixture-large');assert.equal(app.model.selectedModelId,'fixture-large');
+  assert.equal(app.el('model-selection').hidden,false);assert.match(app.el('session-model-note').textContent,/previous session/i);app.chooseModel('fixture-large');assert.equal(app.model.selectedModelId,'fixture-large');
 });
 
 test('empty or malformed model catalogs fail closed and model metadata remains plaintext',()=>{

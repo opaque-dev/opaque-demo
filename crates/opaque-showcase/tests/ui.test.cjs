@@ -156,7 +156,7 @@ function policy(extra={}) {return {phase:'request_check',outcome:'denied',reason
 test('credit experience separates fictional customer context from server policy',()=>{
   const app=ui();app.renderSession(creditSession());
   assert.equal(app.document.body.className,'credit-experience');assert.equal(app.byId('customer-name').textContent,'Portfolio intelligence');
-  assert.match(app.byId('workspace-eyebrow').textContent,/Harborlight Credit Union.*fictional/);assert.match(app.byId('identity-caption').textContent,/Temporary scoped demo session/);
+  assert.match(app.byId('workspace-eyebrow').textContent,/Harborlight Credit Union.*fictional/);assert.match(app.byId('identity-caption').textContent,/Temporary demo session/);
   assert.equal(app.byId('policy-purpose').textContent,'Portfolio monitoring');assert.equal(app.byId('security-panel').hidden,false);
   assert.equal(app.byId('boundary-questions').children.length,3);
   app.renderSession(session());assert.equal(app.byId('security-panel').hidden,true);assert.equal(app.document.body.className,'');assert.equal(app.byId('product-name').textContent,'Customer metrics');
@@ -184,7 +184,7 @@ test('source access is shown from an actual source event and new turns reset the
   const app=ui();app.renderSession(creditSession());const turn=app.addTurn();
   app.handleEvent(turn,'policy',policy({phase:'source_read',outcome:'allowed',reason_code:'source_evidence_received',source_accessed:true}));
   assert.ok(allNodes(app.byId('policy-decisions')).some(n=>n.textContent==='Authorized source evidence received'));
-  app.addTurn();assert.equal(app.state.policyEvents.length,0);assert.match(app.byId('policy-decisions').children[0].textContent,/Waiting for this request/);
+  app.addTurn();assert.equal(app.state.policyEvents.length,0);assert.match(app.byId('policy-decisions').children[0].textContent,/Waiting for permission checks/);
 });
 
 test('architecture awaits validated policy and source evidence instead of inferring a successful read',()=>{
@@ -221,7 +221,7 @@ test('later explanation status cannot restart tool-selection motion or regress r
   app.handleEvent(turn,'result',result());
   app.handleEvent(turn,'status',{message:'Explaining the latest authorized snapshot…'});
   assert.equal(app.state.flow.phase,'evidence');assert.equal(app.state.flow.hasResult,true);assert.equal(app.state.flow.sourceAccess,true);
-  assert.match(app.byId('flow-status').textContent,/Explaining the authorized evidence/);
+  assert.match(app.byId('flow-status').textContent,/Explaining the result/);
   assert.equal(app.state.flow.events.filter(item=>item.text==='Service started tool selection.').length,1);
   const before=app.state.flow.events.length;app.handleEvent(turn,'status',{message:'An unrecognized service message'});
   assert.equal(app.state.flow.events.length,before);assert.equal(app.state.flow.phase,'evidence');
@@ -317,7 +317,7 @@ function activity(value,extra={}) {return {organization:value.organization,scope
 test('engineer is a bound metadata-only identity with no chat or customer tool entitlement',async()=>{
   const app=ui();app.renderSession(organizationSession('engineer'));
   assert.equal(app.byId('organization-panel').hidden,false);assert.equal(app.byId('chat-content').hidden,true);assert.equal(app.byId('message').disabled,true);
-  assert.match(app.byId('policy-tool').textContent,/No customer metric/);assert.match(app.byId('organization-entitlement').textContent,/no customer metric/);
+  assert.match(app.byId('policy-tool').textContent,/No customer metric/);assert.match(app.byId('organization-entitlement').textContent,/cannot read customer metrics/);
   app.byId('message').value='Show requests';let called=false;app.fetch=()=>{called=true;throw Error('unexpected');};await app.submitMessage();assert.equal(called,false);
   const directory=allNodes(app.byId('customer-directory'));assert.ok(directory.some(n=>n.textContent==='Cedar Community Bank'));assert.ok(directory.every(n=>n.tagName!=='a'&&n.tagName!=='button'));
   const broken=organizationSession('engineer');broken.organization.membership.subject='another-user';assert.throws(()=>app.renderSession(broken),/authority did not match/);
@@ -342,7 +342,7 @@ test('activity question text requires explicit visibility and stays plaintext',(
   assert.throws(()=>app.renderActivity(activity(value,{question_text:hostile})),/visibility binding/);
   app.renderActivity(activity(value,{question_visibility:'shared_by_customer',question_text:hostile}));
   let nodes=allNodes(app.byId('activity-records'));assert.ok(nodes.some(n=>n.textContent===hostile));assert.ok(nodes.every(n=>!Object.hasOwn(n,'innerHTML')));
-  app.renderActivity(activity(value));nodes=allNodes(app.byId('activity-records'));assert.ok(!nodes.some(n=>n.textContent===hostile));assert.ok(nodes.some(n=>n.textContent==='Question text concealed'));
+  app.renderActivity(activity(value));nodes=allNodes(app.byId('activity-records'));assert.ok(!nodes.some(n=>n.textContent===hostile));assert.ok(nodes.some(n=>n.textContent==='Question text hidden'));
   assert.equal(app.activitySource({source_accessed:null}),'Source access unknown');assert.equal(app.activitySource({source_accessed:false}),'No source access reported for this request');
 });
 
@@ -350,7 +350,7 @@ test('support requires a current case bound to its subject, customer and generat
   const app=ui(),value=organizationSession('support',4);app.renderSession(value);assert.equal(app.canChat(),true);
   value.organization.support_case.expires_at=Date.now()/1000-1;app.updateSupportCase();assert.equal(app.canChat(),false);assert.equal(app.byId('message').disabled,true);assert.match(app.byId('support-case').textContent,/expired/);assert.equal(app.byId('activity-records').children.length,0);
   value.organization.support_case.expires_at=Date.now()/1000+200;value.organization.support_case.tenant_id='cedar-bank';assert.equal(app.supportCaseValid(value.organization),false);
-  assert.throws(()=>app.renderActivity(activity(value)),/current activity access/);
+  assert.throws(()=>app.renderActivity(activity(value)),/can no longer view activity/);
 });
 
 test('persona selection sends only its fixed alias and support reason, then trusts returned identity',async()=>{
@@ -389,8 +389,8 @@ function portfolioEvidence(view='summary') {
 
 test('dataset explorer shows the server catalog and richer starters without query authority',()=>{
   const app=ui();app.renderSession(portfolioSession());assert.equal(app.byId('dataset-explorer').hidden,false);assert.equal(app.byId('dataset-measures').children.length,6);assert.equal(app.byId('suggestions').children.length,4);
-  assert.match(app.byId('dataset-coverage').textContent,/complete windows/);assert.match(app.byId('dataset-windows').textContent,/1 hour/);
-  const engineer=portfolioSession('engineer');engineer.dataset.measures=[];app.renderSession(engineer);assert.match(app.byId('dataset-entitlement').textContent,/metadata only/);assert.match(app.byId('dataset-measures').children[0].textContent,/No portfolio measures/);assert.equal(app.canChat(),false);
+  assert.match(app.byId('dataset-coverage').textContent,/complete periods/);assert.match(app.byId('dataset-windows').textContent,/1 hour/);
+  const engineer=portfolioSession('engineer');engineer.dataset.measures=[];app.renderSession(engineer);assert.match(app.byId('dataset-entitlement').textContent,/inspect this dataset’s structure.*cannot query its data/);assert.match(app.byId('dataset-measures').children[0].textContent,/cannot query portfolio measures/);assert.equal(app.canChat(),false);
   app.renderSession(session());assert.equal(app.byId('dataset-explorer').hidden,true);
 });
 
@@ -570,7 +570,7 @@ test('replay denial displays the actual service error while retaining the confir
   const app=ui(),value=workSession();app.renderSession(value);app.state.workTask=app.validateWorkTask(workTask(value,'completed'));app.renderWorkTask();let calls=0;
   app.fetch=async()=>{calls++;return {ok:false,status:409,json:async()=>({error:{code:'task_consumed',message:'This one-use task is already consumed.'}})};};
   await app.workTaskAction('execute');assert.equal(calls,1);assert.equal(app.state.workTask.state,'completed');assert.equal(app.byId('work-receipt').hidden,false);
-  assert.match(app.byId('work-status').textContent,/Replay request denied.*recorded task remains consumed.*task_consumed.*already consumed/);assert.equal(app.byId('work-error').hidden,true);
+  assert.match(app.byId('work-status').textContent,/Repeat blocked.*single attempt is still used.*task_consumed.*already consumed/);assert.equal(app.byId('work-error').hidden,true);
 });
 
 test('an uncertain action response does not invent completion or automatically retry execution',async()=>{
@@ -600,7 +600,7 @@ test('returning analyst can display only a revoked older task without its prior 
   const app=ui(),earlier=workSession(),current=workSession(3);app.renderSession(current);
   const revoked=workTask(earlier,'revoked');app.state.workTask=app.validateWorkTask(revoked);app.renderWorkTask();
   assert.equal(app.byId('work-state').textContent,'revoked');assert.equal(app.byId('work-run').hidden,true);assert.equal(app.byId('work-approve').hidden,true);
-  revoked.receipt=workTask(earlier,'completed').receipt;assert.throws(()=>app.validateWorkTask(revoked),/earlier identity generation/);
+  revoked.receipt=workTask(earlier,'completed').receipt;assert.throws(()=>app.validateWorkTask(revoked),/earlier role selection/);
 });
 
 function approvalUI() {
