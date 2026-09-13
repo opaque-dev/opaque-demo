@@ -1,2 +1,4 @@
 .wrangler/
 .dev.vars*
+.public-artifact/
+.public-build-*/

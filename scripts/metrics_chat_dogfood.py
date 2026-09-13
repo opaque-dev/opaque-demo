@@ -33,8 +33,10 @@ import urllib.request
 from urllib.parse import parse_qs, urlencode, urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
-TEST_KEY = ROOT / "crates/opaqued/tests/fixtures/test_rsa_key.pem"
-TEST_JWKS = ROOT / "crates/opaqued/tests/fixtures/test_idp_jwks.json"
+# Hosted runtime compatibility: it explicitly supplies generated private state.
+# Standalone fixtures pass paths per instance; no repository key is used.
+TEST_KEY = None
+TEST_JWKS = None
 METRICS = ["requests_per_second", "error_rate_percent", "p95_latency_ms", "active_sessions"]
 SCOPES = ["metrics:read", "metrics:stream", "metrics:explain", *("metrics:metric:" + name for name in METRICS)]
 
@@ -51,10 +53,29 @@ def encode(value):
     return base64.urlsafe_b64encode(value).decode().rstrip("=")
 
 
-def signed_token(claims, openssl="openssl", header=None):
+def generate_identity(directory, openssl="openssl"):
+    """Create one disposable issuer in a private, otherwise empty directory."""
+    directory = Path(directory)
+    if directory.is_symlink() or directory.stat().st_mode & 0o077:
+        raise ValueError("issuer directory must be private and not a symlink")
+    key, public, jwks = [directory / name for name in ("private.pem", "public.pem", "jwks.json")]
+    if any(path.exists() or path.is_symlink() for path in (key, public, jwks)):
+        raise ValueError("issuer identity already exists")
+    # The parent is already 0700; pre-create files 0600 before OpenSSL writes.
+    for path in (key, public):
+        descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        os.close(descriptor)
+    subprocess.run([openssl, "genpkey", "-algorithm", "RSA", "-pkeyopt", "rsa_keygen_bits:2048", "-pkeyopt", "rsa_keygen_pubexp:65537", "-out", str(key)], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30)
+    subprocess.run([openssl, "pkey", "-in", str(key), "-pubout", "-out", str(public)], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15)
+    modulus = subprocess.run([openssl, "rsa", "-in", str(key), "-modulus", "-noout"], capture_output=True, check=True, text=True, timeout=15).stdout.strip().split("=", 1)[1]
+    dump(jwks, {"keys": [{"kty": "RSA", "alg": "RS256", "use": "sig", "kid": "test-key-1", "n": encode(bytes.fromhex(modulus)), "e": "AQAB"}]})
+    return key, public, jwks
+
+
+def signed_token(claims, openssl="openssl", header=None, key_path=None):
     header = header or {"alg": "RS256", "typ": "at+jwt", "kid": "test-key-1"}
     content = encode(json.dumps(header, separators=(",", ":")).encode()) + "." + encode(json.dumps(claims, separators=(",", ":")).encode())
-    signature = subprocess.run([openssl, "dgst", "-sha256", "-sign", str(TEST_KEY)], input=content.encode(), capture_output=True, check=True).stdout
+    signature = subprocess.run([openssl, "dgst", "-sha256", "-sign", str(key_path or TEST_KEY)], input=content.encode(), capture_output=True, check=True, timeout=15).stdout
     return content + "." + encode(signature)
 
 
@@ -161,10 +182,11 @@ class SourceHandler(QuietHandler):
 class FixtureIssuer(ThreadingHTTPServer):
     daemon_threads = True
 
-    def __init__(self, port, clients, directory, openssl):
+    def __init__(self, port, clients, directory, openssl, key_path=None, jwks_path=None):
         self.origin = f"http://127.0.0.1:{port}"
         self.clients = {client["client_id"]: client for client in clients}
         self.directory, self.openssl = Path(directory), openssl
+        self.key_path, self.jwks_path = key_path or TEST_KEY, jwks_path or TEST_JWKS
         self.pending, self.codes, self.lock = {}, {}, threading.Lock()
         self.completed = 0
         super().__init__(("127.0.0.1", port), IssuerHandler)
@@ -182,7 +204,7 @@ class IssuerHandler(QuietHandler):
         if parsed.path in ("/.well-known/oauth-authorization-server", "/.well-known/openid-configuration"):
             return self.reply(200, {"issuer": self.server.origin, "authorization_endpoint": self.server.origin + "/authorize", "token_endpoint": self.server.origin + "/token", "jwks_uri": self.server.origin + "/jwks", "response_types_supported": ["code"], "grant_types_supported": ["authorization_code"], "code_challenge_methods_supported": ["S256"], "token_endpoint_auth_methods_supported": ["none"], "scopes_supported": SCOPES})
         if parsed.path == "/jwks":
-            return self.reply(200, json.loads(TEST_JWKS.read_text()))
+            return self.reply(200, json.loads(Path(self.server.jwks_path).read_text()))
         if parsed.path != "/authorize":
             return self.reply(404, {"error": "not_found"})
         try:
@@ -250,7 +272,7 @@ class IssuerHandler(QuietHandler):
             self.server.completed += 1
             dump(self.server.directory / "issuer-evidence.json", {"completed_exchanges": self.server.completed, "pkce": "S256", "token_type": "at+jwt RS256", "registered_customer_clients": len(self.server.clients), "test_issuer": True, "token_logging": False})
         client = self.server.clients[query["client_id"]]
-        token = signed_token(self.server.claims(client, query["scope"].split()), self.server.openssl)
+        token = signed_token(self.server.claims(client, query["scope"].split()), self.server.openssl, key_path=self.server.key_path)
         return self.reply(200, {"access_token": token, "token_type": "Bearer", "expires_in": 900, "scope": query["scope"]})
 
 
@@ -259,7 +281,7 @@ def internal_mode(args):
     if args.internal == "source":
         server = RollingSource(config["port"], config["tenant_id"], config["index"], os.environ["OPAQUE_FIXTURE_SOURCE_KEY"], args.config.parent)
     else:
-        server = FixtureIssuer(config["port"], config["clients"], args.config.parent, config["openssl"])
+        server = FixtureIssuer(config["port"], config["clients"], args.config.parent, config["openssl"], config["key_path"], config["jwks_path"])
     server.serve_forever()
 
 
@@ -299,6 +321,8 @@ def sse_events(raw):
 class ChatFixture:
     def __init__(self, args, directory):
         self.args, self.directory = args, directory
+        self.identity_storage = None
+        self.key_path = None
         self.processes, self.logs, self.gateways, self.clients = [], [], [], []
         self.keys = [secrets.token_urlsafe(32), secrets.token_urlsafe(32)]
         self.env = {key: os.environ[key] for key in ("PATH", "HOME", "LANG", "TMPDIR") if key in os.environ}
@@ -307,7 +331,7 @@ class ChatFixture:
         if not self.openssl:
             raise RuntimeError("OpenSSL is required for the disposable OAuth issuer")
         self.issuer = f"http://127.0.0.1:{args.issuer_port}"
-        self.binary = ROOT / "target/debug/opaque-showcase"
+        self.binary = Path(getattr(args, "showcase_bin", None) or ROOT / "target/debug/opaque-showcase").resolve()
         self.configs = []
         for port in [args.port, args.port + 1, args.issuer_port, args.source_port, args.source_port + 1]:
             with socket.socket() as probe:
@@ -339,7 +363,9 @@ class ChatFixture:
             subprocess.run(["cargo", "build", "--locked", "-p", "opaque-showcase"], cwd=ROOT, env=dict(self.env, CARGO_INCREMENTAL="0"), check=True)
         if not self.binary.is_file():
             raise RuntimeError("Build the opaque-showcase native binary before --no-build")
-        public_key = subprocess.run([self.openssl, "pkey", "-in", str(TEST_KEY), "-pubout"], capture_output=True, text=True, check=True).stdout
+        self.identity_storage = tempfile.TemporaryDirectory(prefix="issuer-identity-", dir=self.directory)
+        self.key_path, public_path, jwks_path = generate_identity(Path(self.identity_storage.name), self.openssl)
+        public_key = public_path.read_text()
         for index, suffix in enumerate(["a", "b"]):
             tenant = "synthetic-" + suffix
             origin = f"http://127.0.0.1:{self.args.port + index}"
@@ -357,7 +383,7 @@ class ChatFixture:
             dump(directory / "gateway.json", config)
         issuer_dir = self.directory / "issuer"
         issuer_dir.mkdir(mode=0o700)
-        dump(issuer_dir / "config.json", {"port": self.args.issuer_port, "clients": self.clients, "openssl": self.openssl})
+        dump(issuer_dir / "config.json", {"port": self.args.issuer_port, "clients": self.clients, "openssl": self.openssl, "key_path": str(self.key_path), "jwks_path": str(jwks_path)})
         dump(self.directory / "binary-digest.json", {"opaque-showcase": hashlib.sha256(self.binary.read_bytes()).hexdigest()})
 
     def start_gateway(self, index):
@@ -411,7 +437,7 @@ class ChatFixture:
         now = int(time.time())
         claims = {"iss": self.issuer, "aud": client["resource"], "sub": client["subject"], "client_id": client["client_id"], "tenant_id": client["tenant_id"], "scope": " ".join(client["scopes"]), "jti": secrets.token_hex(16), "iat": now, "nbf": now, "exp": now + 900}
         claims.update(changes or {})
-        return signed_token(claims, self.openssl, header)
+        return signed_token(claims, self.openssl, header, key_path=self.key_path)
 
     def mcp(self, index, token, arguments=None, method="tools/call"):
         request = {"jsonrpc": "2.0", "id": 1, "method": method, "params": {"name": "opaque_metrics_query", "arguments": arguments or {"metrics": ["requests_per_second"], "window_secs": 60}}}
@@ -552,6 +578,8 @@ class ChatFixture:
             self.stop_process(process)
         for log in self.logs:
             log.close()
+        if self.identity_storage:
+            self.identity_storage.cleanup()
 
 
 def main():
@@ -561,6 +589,8 @@ def main():
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--serve", action="store_true")
     parser.add_argument("--no-build", action="store_true")
+    parser.add_argument("--showcase-bin", type=Path, help="Explicit existing showcase binary (requires --no-build)")
+    parser.add_argument("--prepare-only", action="store_true", help="Generate and validate disposable setup without starting listeners")
     parser.add_argument("--fixture-model", action="store_true", help="Use an explicit deterministic test parser instead of Gemma for --serve")
     parser.add_argument("--data-dir", type=Path)
     parser.add_argument("--port", type=int, default=19400)
@@ -569,6 +599,8 @@ def main():
     parser.add_argument("--model-base-url", default="http://127.0.0.1:19680/")
     parser.add_argument("--model-id", default="gemma-4-E2B-it-Q3_K_M.gguf")
     args = parser.parse_args()
+    if args.showcase_bin and not args.no_build:
+        parser.error("--showcase-bin requires --no-build")
     if args.internal:
         internal_mode(args)
         return 0
@@ -585,6 +617,9 @@ def main():
         print("Metrics chat state: " + str(directory), flush=True)
         fixture = ChatFixture(args, directory)
         fixture.prepare()
+        if args.prepare_only:
+            print("PASS: standalone fixture configuration and ephemeral issuer initialized; no listeners started.")
+            return 0
         fixture.start()
         fixture.check()
         if args.serve:

@@ -4,7 +4,7 @@ This demo connects an authenticated customer chat to a bearer-protected HTTP MCP
 
 ## Run
 
-From the Opaque repository, after the current gateway tests pass:
+From the standalone opaque-demo repository, after the current gateway tests pass:
 
 ```sh
 cargo build --locked -p opaque-showcase
@@ -14,7 +14,7 @@ python3 -B scripts/metrics_chat_dogfood.py --serve --no-build
 
 `--check` uses the explicitly labeled deterministic test parser. `--serve` first runs those checks, then starts fresh gateway sessions using the configured Gemma endpoint at `http://127.0.0.1:19680/`, model `gemma-4-E2B-it-Q3_K_M.gguf`. The endpoint must already be available through the separately authorized loopback forward. The runner does not create a Kubernetes forward, change a deployment, allocate a GPU, download a model, or silently fall back if the live model fails. Use `--fixture-model` with `--serve` to request the deterministic parser explicitly.
 
-Every invocation uses fresh disposable state. `--data-dir` may select an empty directory; otherwise the runner prints a short `/private/tmp/omf-*` path. `--no-build` uses the existing native binary, so omit it or build explicitly after source changes. Ctrl-C stops only the runner's own child processes and retains evidence. No `HOME` override, Docker mutation, or change to the existing Opaque dogfood dashboards occurs.
+Every invocation uses fresh disposable state. `--data-dir` may select an empty directory; otherwise the runner prints a short temporary `omf-*` path. The private issuer key/JWKS directory is deleted when the runner exits; retained evidence does not include the signing key. `--prepare-only` validates configuration and key generation without starting any listeners. `--showcase-bin /absolute/path/opaque-showcase --no-build` selects an explicitly built binary. `--no-build` alone uses the existing native binary, so omit it or build explicitly after source changes. Ctrl-C stops only the runner's own child processes and retains evidence. No `HOME` override, Docker mutation, or change to the existing Opaque dogfood dashboards occurs.
 
 | Customer | Chat | Allowed metrics |
 | --- | --- | --- |
@@ -37,7 +37,7 @@ The deterministic test parser recognizes those metric names and synonyms. The li
 
 The metric source is a real rolling deque receiving synthetic events every 250 milliseconds. It computes named numeric aggregates over the requested window. Sources start empty, so the first rolling window is partial; the UI shows sample counts and a warm-up notice. Empty windows use an unavailable event watermark rather than inventing a new event time. Each source process contains only one customer's events and receives only its own bearer credential. Each gateway child receives only the credential for its configured source; credentials are not accumulated in the parent's environment or sent to the browser/model. The shared host UID still permits host-level access; this is process/protocol evidence, not an OS-user isolation claim.
 
-OAuth uses a public repository test RSA key, `at+jwt` access-token typing, exact audience/customer/subject/client admission, PKCE S256, fixed redirect/resource/client bindings, and signed scope claims. The issuer is deliberately disposable. Native gateway code validates the tokens and rechecks authorization during repeated reads. Explicit `metrics:explain` scope permits the configured model destination to receive the bounded question and numeric aggregate evidence.
+OAuth uses a fresh ephemeral RSA key generated in private temporary storage on each invocation, `at+jwt` access-token typing, exact audience/customer/subject/client admission, PKCE S256, fixed redirect/resource/client bindings, and signed scope claims. The issuer is deliberately disposable. Native gateway code validates the tokens and rechecks authorization during repeated reads. Explicit `metrics:explain` scope permits the configured model destination to receive the bounded question and numeric aggregate evidence.
 
 Each `auth.admissions` entry requires an exact `client_id` alongside `tenant_id`, `subject`, and `scopes`. Existing configuration without that field fails to load; regenerate fixture configuration or add the registered client explicitly. This binding applies to direct MCP bearer requests as well as browser login. Gateway admission and revocation still use local state; this change does not connect a production IdP or the broker's identity store.
 

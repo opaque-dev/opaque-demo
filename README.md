@@ -28,7 +28,7 @@ python3 -B -m unittest discover -s scripts -p 'test_*.py'
 python3 -B -m unittest discover -s deploy/hosted-demo -p 'test_*.py'
 ```
 
-The Python and Node fixtures use only their standard runtimes. Rust gateway
+The Python fixtures use the standard runtime plus OpenSSL for ephemeral issuer setup. Node fixtures use the standard runtime. Rust gateway
 fixtures generate disposable RSA signing material in memory. Interactive native
 approval tests are explicitly ignored in unattended runs. Hosted runtime and
 controller fixtures use local fake APIs and loopback services. The checks above
@@ -36,8 +36,9 @@ do not change a cluster, contact production models, deploy a Worker, or publish
 assets.
 
 The [CI workflow](.github/workflows/ci.yml) runs Rust checks on Linux and macOS,
-and browser, Worker, and Python fixtures on Linux. It has read-only repository
-permissions and no deployment jobs or credentials.
+and browser, Worker, and Python fixtures on Linux. It also checks standalone
+issuer initialization and retains private source-bound build artifacts for seven
+days. It has read-only repository permissions and no deployment jobs or credentials.
 
 ## Core dependency updates
 
@@ -49,11 +50,14 @@ repositories.
 
 ## Contents
 
+- [examples/github-ci](examples/github-ci) — real public GitHub CI inference through the configured core broker, with a local receipt view.
 - [crates/opaque-showcase](crates/opaque-showcase) — OAuth MCP metrics gateway and chat UI, scoped to each tenant.
 - [assets/brand](assets/brand) — shared visual assets and their provenance.
 - [deploy/hosted-demo](deploy/hosted-demo) — Kubernetes runtime, controller, and fixtures.
 - [deploy/cloudflare-demo](deploy/cloudflare-demo) — public Worker, static UI, and fixtures.
 - [examples/gpu-showcase](examples/gpu-showcase) and [examples/metrics-chat](examples/metrics-chat) — local workflow walkthroughs and setup prerequisites.
+- [examples/recordings](examples/recordings) — verified canonical core binaries and bounded local recording flows.
+- [deploy/hosted-demo/BUILD.md](deploy/hosted-demo/BUILD.md) — source-bound image inputs and complete public-artifact privacy gate.
 - [scripts](scripts) — demo runners, acceptance fixtures, and artifact privacy checks.
 
 ## Deployment boundary

@@ -33,6 +33,18 @@ jobs:
         run: cargo fmt --all -- --check
       - name: Build standalone demo
         run: cargo build --locked --workspace
+      - name: Smoke standalone metrics initialization with ephemeral keys
+        run: python3 -B scripts/metrics_chat_dogfood.py --prepare-only --no-build
+      - name: Build source-bound standalone artifact
+        run: python3 -B scripts/build_hosted_artifact.py build --demo-revision "$GITHUB_SHA" --output "$RUNNER_TEMP/demo-artifact" --profile debug
+      - name: Verify generated artifact provenance and privacy
+        run: python3 -B scripts/build_hosted_artifact.py verify --directory "$RUNNER_TEMP/demo-artifact/payload"
+      - name: Retain private CI artifact for the exact revision
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-local-build-${{ matrix.os }}
+          path: ${{ runner.temp }}/demo-artifact/payload
+          retention-days: 7
       - name: Run Rust fixtures
         run: cargo test --locked --workspace
       - name: Lint all Rust targets
@@ -56,6 +68,8 @@ jobs:
           python-version: "3.12.11"
       - name: Run browser and Worker fixtures
         run: node --test crates/opaque-showcase/tests/*.test.cjs deploy/cloudflare-demo/tests/*.test.mjs
+      - name: Check complete standalone publication artifact
+        run: python3 -B scripts/check_site_privacy.py --build
       - name: Run local script fixtures
         run: python -B -m unittest discover -s scripts -p 'test_*.py'
       - name: Run hosted runtime and controller fixtures
