@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Verify the generated visitor site; never publish or upload the artifact.
 
---build copies docs into temporary storage, marks private sources, runs the real
-MkDocs build, and inspects the complete output before deleting the fixture.
---site-dir inspects an existing deployment artifact with the same route policy.
+--build packages the standalone Worker public directory into temporary storage,
+adds private canaries to the source, and inspects every generated asset.
+--site-dir inspects an existing deployment artifact. The explicit docs profile
+retains the legacy MkDocs artifact checker for a separately provided docs site.
 """
 from __future__ import annotations
 
@@ -41,6 +42,7 @@ PRIVATE_REFERENCES = re.compile(
     r"(?:^|[/\\])(?:product(?:[/\\]|$)|(?:dogfood|release-dogfood|tenant-boundaries)(?:[/\\.#?]|$))"
 )
 MAX_ASSET_BYTES = 64 * 1024 * 1024
+WORKER_PUBLIC_FILES = frozenset({"index.html", "approval/callback/index.html"})
 
 
 def decoded(value: str) -> str:
@@ -75,7 +77,7 @@ def read_asset(path: Path) -> bytes:
     return content
 
 
-def inspect_site(site: Path, sentinel: str | None = None) -> list[str]:
+def inspect_site(site: Path, sentinel: str | None = None, profile="docs") -> list[str]:
     """Return artifact-relative findings without printing any private content."""
     failures: list[str] = []
     if not site.is_dir():
@@ -91,7 +93,10 @@ def inspect_site(site: Path, sentinel: str | None = None) -> list[str]:
         if any(part.split(".")[0] in PRIVATE_NAMES for part in normalized.split("/")):
             failures.append(f"{name}: private document path")
         suffix = Path(normalized).suffix.lower()
-        if suffix == ".html" and name not in PUBLIC_HTML:
+        allowed_html = PUBLIC_HTML if profile == "docs" else WORKER_PUBLIC_FILES
+        if profile == "worker" and name not in WORKER_PUBLIC_FILES:
+            failures.append(f"{name}: asset is not on the standalone Worker allowlist")
+        if suffix == ".html" and name not in allowed_html:
             failures.append(f"{name}: HTML page is not on the visitor allowlist")
         if suffix == ".md":
             failures.append(f"{name}: raw Markdown source must not be published")
@@ -105,6 +110,12 @@ def inspect_site(site: Path, sentinel: str | None = None) -> list[str]:
         text = decoded(content.decode("utf-8", errors="ignore"))
         if PRIVATE_REFERENCES.search(text):
             failures.append(f"{name}: reference to a private document route")
+
+    if profile == "worker":
+        for required in sorted(WORKER_PUBLIC_FILES):
+            if not (site / required).is_file():
+                failures.append(f"{required}: required publication asset is missing")
+        return failures
 
     for required in ("index.html", "search/search_index.json", "sitemap.xml"):
         if not (site / required).is_file():
@@ -155,7 +166,7 @@ def mark_private_sources(docs: Path, sentinel: str) -> int:
     return len(sources) + 1
 
 
-def build_and_inspect(repository: Path = ROOT) -> list[str]:
+def build_docs_and_inspect(repository: Path) -> list[str]:
     with tempfile.TemporaryDirectory(prefix="opaque-site-privacy-") as temporary:
         fixture = Path(temporary)
         shutil.copytree(repository / "docs", fixture / "docs")
@@ -173,15 +184,59 @@ def build_and_inspect(repository: Path = ROOT) -> list[str]:
         return failures
 
 
+def package_worker_site(output: Path, repository: Path = ROOT, sentinel: str | None = None) -> list[str]:
+    """Only reviewed files enter the actual Worker publication directory."""
+    repository = repository.resolve()
+    source = repository / "deploy/cloudflare-demo/public"
+    if output.exists() and any(output.iterdir()):
+        raise ValueError("site output must be empty")
+    output.mkdir(parents=True, exist_ok=True)
+    for name in sorted(WORKER_PUBLIC_FILES):
+        path = source / name
+        parts = path.relative_to(repository).parts
+        if any(repository.joinpath(*parts[:n]).is_symlink() for n in range(1, len(parts)+1)):
+            raise ValueError("public source paths must not traverse symlinks")
+        destination = output / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(path, destination)
+    return inspect_site(output, sentinel, "worker")
+
+
+def build_and_inspect(repository: Path = ROOT) -> list[str]:
+    with tempfile.TemporaryDirectory(prefix="opaque-demo-privacy-") as temporary:
+        fixture = Path(temporary)
+        source = fixture / "source"
+        shutil.copytree(repository / "deploy/cloudflare-demo/public", source / "deploy/cloudflare-demo/public", symlinks=True)
+        sentinel = "OPAQUEPRIVATE" + uuid.uuid4().hex.upper()
+        for name in ("docs/product/private.md", "deploy/cloudflare-demo/public/product/report.txt", "deploy/cloudflare-demo/public/search/private.json"):
+            path = source / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(sentinel)
+        failures = package_worker_site(fixture / "artifact", source, sentinel)
+        if not failures:
+            print("Privacy check passed: generated standalone Worker artifact excludes private source canaries; every publication asset inspected.")
+        return failures
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--build", action="store_true")
     mode.add_argument("--site-dir", type=Path)
+    mode.add_argument("--package", type=Path, help="Create the reviewed standalone Worker public artifact")
+    parser.add_argument("--profile", choices=["worker", "docs"], default="worker")
+    parser.add_argument("--repository", type=Path, default=ROOT)
     arguments = parser.parse_args()
     try:
-        failures = build_and_inspect() if arguments.build else inspect_site(arguments.site_dir)
-    except (OSError, subprocess.SubprocessError) as error:
+        if arguments.build:
+            failures = build_and_inspect(arguments.repository) if arguments.profile == "worker" else build_docs_and_inspect(arguments.repository)
+        elif arguments.package:
+            if arguments.profile != "worker":
+                raise ValueError("package supports only the standalone Worker")
+            failures = package_worker_site(arguments.package, arguments.repository)
+        else:
+            failures = inspect_site(arguments.site_dir, profile=arguments.profile)
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
         print(f"Privacy build failed: {type(error).__name__}", file=sys.stderr)
         return 1
     for failure in failures:

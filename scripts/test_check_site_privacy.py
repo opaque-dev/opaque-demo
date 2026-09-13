@@ -81,5 +81,52 @@ class SitePrivacyTests(unittest.TestCase):
         self.assertTrue(any("inspection failed" in failure for failure in failures))
 
 
+
+class StandaloneWorkerPrivacyTests(unittest.TestCase):
+    def test_real_standalone_build_excludes_private_canaries(self):
+        self.assertEqual(privacy.build_and_inspect(), [])
+
+    def test_worker_artifact_rejects_private_extra_and_symlink_assets(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "site"
+            self.assertEqual(privacy.package_worker_site(output), [])
+            (output / "unexpected.json").write_text('{"private":"data"}')
+            self.assertTrue(any("allowlist" in f for f in privacy.inspect_site(output, profile="worker")))
+            (output / "unexpected.json").unlink()
+            (output / "index.html").unlink()
+            (output / "index.html").symlink_to(output / "approval/callback/index.html")
+            self.assertTrue(any("symlink" in f for f in privacy.inspect_site(output, profile="worker")))
+
+    def test_public_content_canary_is_detected_in_actual_output(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            repository = Path(temporary) / "source"
+            import shutil
+            shutil.copytree(privacy.ROOT / "deploy/cloudflare-demo/public", repository / "deploy/cloudflare-demo/public")
+            (repository / "deploy/cloudflare-demo/public/index.html").write_text("OPAQUEPRIVATECANARY")
+            findings = privacy.package_worker_site(Path(temporary) / "site", repository, "OPAQUEPRIVATECANARY")
+            self.assertTrue(any("sentinel leaked" in f for f in findings))
+
+class WorkerBuildIntegrationTests(unittest.TestCase):
+    def test_build_is_repeatable_and_refuses_unknown_existing_content(self):
+        import build_worker_site
+        import shutil
+        with tempfile.TemporaryDirectory() as temporary:
+            repository = Path(temporary)
+            shutil.copytree(privacy.ROOT / "deploy/cloudflare-demo/public", repository / "deploy/cloudflare-demo/public")
+            output = build_worker_site.build(repository)
+            self.assertEqual(privacy.inspect_site(output, profile="worker"), [])
+            self.assertEqual(build_worker_site.build(repository), output)
+            (output / "unknown-private.json").write_text("retained for operator inspection")
+            with self.assertRaises(ValueError):
+                build_worker_site.build(repository)
+            self.assertTrue((output / "unknown-private.json").exists())
+
+    def test_wrangler_publishes_only_the_gated_output(self):
+        import tomllib
+        config = tomllib.loads((privacy.ROOT / "deploy/cloudflare-demo/wrangler.toml").read_text())
+        self.assertEqual(config["assets"]["directory"], "./.public-artifact")
+        self.assertIn("build_worker_site.py", config["build"]["command"])
+
+
 if __name__ == "__main__":
     unittest.main()
