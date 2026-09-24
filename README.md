@@ -50,6 +50,7 @@ repositories.
 
 ## Contents
 
+- [examples/ax-minikube](examples/ax-minikube) — local AX runner recovery demo with persistent evidence and verified pod replacement; review and provider effects are synthetic.
 - [examples/github-ci](examples/github-ci) — real public GitHub CI inference through the configured core broker, with a local receipt view.
 - [crates/opaque-showcase](crates/opaque-showcase) — OAuth MCP metrics gateway and chat UI, scoped to each tenant.
 - [assets/brand](assets/brand) — shared visual assets and their provenance.
