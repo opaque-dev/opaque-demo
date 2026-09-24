@@ -1,0 +1,5 @@
+[
+  {"action_key": "outside-policy", "resource": "accepted", "status": "closed"},
+  {"action_key": "resolve-accepted", "resource": "accepted", "status": "resolved"},
+  {"action_key": "resolve-lost-ack", "resource": "lost-ack", "status": "resolved"}
+]

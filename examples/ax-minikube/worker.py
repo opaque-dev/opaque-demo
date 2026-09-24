@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
-"""AX child command for the synthetic recovery demo; never a human approval."""
+"""AX glue: submit repository proposals to the real Opaque CLI; never approve."""
 import fcntl
-import hashlib
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 import time
 
-sys.path.insert(0, "/opt/opaque/ax-scope")
-import check_runtime
+sys.path.insert(0, '/opt/opaque/ax-scope')
+import adapter
 
-ROOT = Path("/workspace/demo")
+ROOT = Path('/workspace/demo')
+WORKLOAD = Path('/etc/demo/workload')
 
 
 def save(path, value):
-    temporary = path.with_suffix(".pending")
-    with temporary.open("w") as stream:
-        json.dump(value, stream, sort_keys=True, indent=2)
+    temporary = path.with_suffix('.pending')
+    with temporary.open('w') as stream:
+        json.dump(value, stream, indent=2)
         stream.flush()
         os.fsync(stream.fileno())
     temporary.replace(path)
@@ -28,62 +29,95 @@ def save(path, value):
         os.close(fd)
 
 
-def binding(report):
-    return {key: report[key] for key in ("run_id", "checkpoint_sha256", "actions")}
+def once(path, value):
+    adapter.write_new(path, value)
+    fd = os.open(path.parent, os.O_DIRECTORY)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+def cli(*args):
+    session = json.loads(Path('/tmp/scope-session.json').read_text())
+    env = {**os.environ, 'OPAQUE_SESSION_TOKEN': session['session_token']}
+    result = subprocess.run(['/opt/opaque/opaque', '--json', '--socket', '/run/opaque/opaqued.sock',
+                             'scope', *args], env=env, capture_output=True, text=True, timeout=30)
+    # A transport failure is not a denial and never authorizes replay.
+    response = json.loads(result.stdout)
+    if result.returncode and not response.get('error'):
+        raise RuntimeError('opaque CLI failed without a broker response')
+    return response
 
 
 def main():
     os.umask(0o077)
-    ROOT.mkdir(mode=0o700, exist_ok=True)
-    with (ROOT / "worker.lock").open("a") as lock:
+    with (ROOT / 'worker.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        state = {"phase": "awaiting_start", "pod_uid": os.environ["POD_UID"],
-                 "core_revision": os.environ["OPAQUE_CORE_REVISION"],
-                 "ax_revision": check_runtime.AX_REVISION,
-                 "approval": "synthetic signing in the public core experiment",
-                 "native_human_review": False, "live_broker_rpc": False,
-                 "agent_substrate": False, "kubernetes_pod": True,
-                 "provider_effects": "synthetic local files", "independent_evaluation": False}
-        save(ROOT / "view.json", state)
-        while not (ROOT / "start.json").exists():
-            time.sleep(0.25)
-        if (ROOT / "failed.json").exists():
-            save(ROOT / "view.json", {**state, "phase": "held", "error": "An earlier attempt failed. Retain this volume and inspect it; no automatic retry."})
+        base = {'pod_uid': os.environ['POD_UID'], 'live_broker_rpc': True,
+                'native_human_review': False, 'provider': 'synthetic HTTPS support API',
+                'core_revision': os.environ['OPAQUE_CORE_REVISION'], 'ax_revision': os.environ['AX_REVISION']}
+        if (ROOT / 'plan-attempt.json').exists():
+            previous = json.loads((ROOT / 'view.json').read_text())
+            save(ROOT / 'view.json', {**previous, 'pod_uid': base['pod_uid'], 'phase': 'held',
+                 'message': 'Runner restarted. Retained attempts require inspection; nothing was replayed.'})
             return
-        output = ROOT / "run"
-        output.mkdir(mode=0o700, exist_ok=True)
-        first_file = ROOT / "first-report.json"
-        first = json.loads(first_file.read_text()) if first_file.exists() else None
-        # Publish no passing result until real verification completes.
-        save(ROOT / "view.json", {**state, "phase": "inspecting" if first else "running"})
-        try:
-            report = check_runtime.inside(output, Path("/opt/opaque/scope-recovery"), Path("/opt/opaque/opaque-evidence"))
-            producer_hash = hashlib.sha256((output / "public-reproduction.log").read_bytes()).hexdigest()
-            if first:
-                if binding(first["report"]) != binding(report) or first["producer_sha256"] != producer_hash:
-                    raise ValueError("retained identity, action evidence or producer log changed")
-                if not report["recovered_existing_run"]:
-                    raise ValueError("restart repeated the producer")
-            else:
-                save(first_file, {"pod_uid": state["pod_uid"], "producer_sha256": producer_hash, "report": report})
-                first = json.loads(first_file.read_text())
-            recovered = first["pod_uid"] != state["pod_uid"]
-            save(ROOT / "view.json", {**state, "phase": "recovered" if recovered else "inspected",
-                 "run_id": report["run_id"], "checkpoint_sha256": report["checkpoint_sha256"],
-                 "first_pod_uid": first["pod_uid"], "pod_replaced": recovered,
-                 "recovered_existing_run": report["recovered_existing_run"],
-                 "producer_sha256": producer_hash, "charged_attempts": report["charged_attempts"],
-                 "unknown": report["unknown"], "api_accepted": 1, "missing_outcomes_held": report["missing_outcomes_held"],
-                 "budget_denials": 12, "scope_revoked": True, "crash": report["public_core_crash"],
-                 "changed_effect_rejected": report["changed_effect_rejected"],
-                 "altered_export_rejected": report["altered_export_rejected"],
-                 "review_signatures_verified": report["synthetic_review_signatures_verified"],
-                 "actions": report["actions"]})
-        except Exception as error:
-            save(ROOT / "failed.json", {"error_type": type(error).__name__})
-            save(ROOT / "view.json", {**state, "phase": "held", "error": "Execution or verification failed. No automatic retry; inspect retained private logs."})
-            raise
+        save(ROOT / 'view.json', {**base, 'phase': 'awaiting_delegation'})
+        while not Path('/tmp/scope-session.json').exists():
+            time.sleep(.5)
+        once(ROOT / 'plan-attempt.json', {'operation': 'scope plan', 'manifest': json.loads((WORKLOAD / 'scope.json').read_text())})
+        plan = cli('plan', '--manifest', str(WORKLOAD / 'scope.json'))
+        save(ROOT / 'plan.json', plan)
+        if plan.get('error'):
+            raise RuntimeError('broker denied scope proposal')
+        round_id = plan['result']['document']['round_id']
+        save(ROOT / 'view.json', {**base, 'phase': 'awaiting_scope_review', 'issuance_round_id': round_id})
+        while not (ROOT / 'activate.json').exists():
+            time.sleep(.5)
+        # This file requests activation only. Opaque verifies the native receipt.
+        once(ROOT / 'activation-attempt.json', {'round_id': round_id})
+        activation = cli('activate', round_id)
+        save(ROOT / 'activation.json', activation)
+        if activation.get('error'):
+            raise RuntimeError('broker refused activation')
+        grant = activation['result']['grant']
+        binding = json.loads((ROOT / 'activate.json').read_text())
+        save(ROOT / 'view.json', {**base, 'phase': 'ready', 'native_human_review': True,
+             'scope_id': grant['scope_id'], 'issuance_round_id': round_id})
+        while not (ROOT / 'start.json').exists():
+            time.sleep(.5)
+        once(ROOT / 'execution-attempt.json', {'scope_id': grant['scope_id']})
+        metadata = adapter.fetch_metadata(os.environ['AX_METADATA_URL'])
+        results = []
+        for action in json.loads((WORKLOAD / 'actions.json').read_text()):
+            context, proposal = adapter.bind(metadata, {
+                'deployment_id': binding['deployment_id'], 'run_id': binding['run_id'],
+                'action_key': action['action_key'], 'requester_id': grant['subject'],
+                'scope_id': grant['scope_id'], 'issuance_round_id': round_id,
+                'resource': action['resource'], 'status': action['status'], **grant['owner']})
+            directory = ROOT / action['action_key']
+            directory.mkdir(mode=0o700)
+            once(directory / 'correlation.json', context)
+            once(directory / 'action.json', proposal)
+            # The durable intent precedes dispatch. A missing response stays held.
+            once(directory / 'dispatch-attempt.json', {'request_id': context['request_id']})
+            response = cli('run', '--manifest', str(directory / 'action.json'))
+            save(directory / 'response.json', response)
+            outcome = cli('outcome', '--scope-id', grant['scope_id'], '--request-id', context['request_id'])
+            save(directory / 'outcome.json', outcome)
+            results.append({'action': action, 'request_id': context['request_id'], 'response': response,
+                            'outcome': outcome, 'retry_authorized': False})
+            save(ROOT / 'view.json', {**base, 'phase': 'running', 'native_human_review': True,
+                 'scope_id': grant['scope_id'], 'issuance_round_id': round_id, 'actions': results})
+        save(ROOT / 'view.json', {**base, 'phase': 'inspected', 'native_human_review': True,
+             'scope_id': grant['scope_id'], 'issuance_round_id': round_id, 'actions': results})
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    try:
+        main()
+    except Exception as error:
+        prior = json.loads((ROOT / 'view.json').read_text()) if (ROOT / 'view.json').exists() else {}
+        save(ROOT / 'view.json', {**prior, 'phase': 'held', 'error_type': type(error).__name__,
+             'message': 'Execution stopped. Inspect retained records; no automatic retry.'})
+        raise

@@ -1,4 +1,4 @@
-"""Prevent cross-origin cluster mutations and repeated experiment dispatch."""
+"""Prevent web authority bypass and undeclared credential mounts."""
 import http.client
 import http.server
 from functools import partial
@@ -7,6 +7,9 @@ import tempfile
 import threading
 import unittest
 from unittest.mock import Mock
+from string import Template
+
+import yaml
 
 import ax_minikube_demo as demo
 
@@ -55,10 +58,47 @@ class DemoBoundaryTests(unittest.TestCase):
         instance = object.__new__(demo.Demo)
         instance.lock, instance.busy = threading.Lock(), False
         instance.read = Mock(return_value={"phase": "inspected"})
-        for phase in ("inspected", "recovered", "held", "running", "inspecting"):
+        for phase in ("awaiting_delegation", "awaiting_scope_review", "ready", "inspected", "held", "running"):
             instance.read.return_value = {"phase": phase}
-            with self.subTest(phase=phase), self.assertRaisesRegex(ValueError, "already started"):
+            with self.subTest(phase=phase), self.assertRaisesRegex(ValueError, "run requires"):
                 instance.action("run")
+
+    def test_approved_scope_still_requires_observed_policy_match(self):
+        instance = object.__new__(demo.Demo)
+        instance.lock, instance.busy = threading.Lock(), False
+        instance.read = Mock(return_value={"phase": "ready", "policy_verified": False})
+        instance.signal = Mock()
+        with self.assertRaises(ValueError):
+            instance.action("run")
+        instance.signal.assert_not_called()
+        instance.read.return_value["policy_verified"] = True
+        instance.action("run")
+        instance.signal.assert_called_once_with("start.json", {"requested": True})
+
+    def test_browser_cannot_open_native_review_or_restart_runner(self):
+        for action in ("review", "delegate", "activate", "restart"):
+            self.assertEqual(self.request("POST", "/api/" + action, Origin="http://" + self.host)[0], 404)
+        self.fake.action.assert_not_called()
+
+    def test_ax_pod_cannot_mount_broker_or_reviewer_custody(self):
+        raw = (demo.EXAMPLE / "k8s/runner.yaml").read_text()
+        pod = yaml.safe_load(Template(raw).substitute(IMAGE="opaque-ax-demo:test"))["spec"]["template"]["spec"]
+        self.assertFalse(pod.get("shareProcessNamespace", False))
+        self.assertFalse(pod["automountServiceAccountToken"])
+        self.assertNotIn("fsGroup", pod["securityContext"], "fsGroup would rewrite the shared socket's custody")
+        claims = {v["persistentVolumeClaim"]["claimName"] for v in pod["volumes"] if "persistentVolumeClaim" in v}
+        self.assertEqual(claims, {"broker-socket", "evidence"})
+        mounts = {m["mountPath"]: m for m in pod["containers"][0]["volumeMounts"]}
+        self.assertTrue(mounts["/run/opaque"]["readOnly"])
+        self.assertNotIn("/var/lib/opaque", mounts)
+        self.assertTrue(all("hostPath" not in v and "secret" not in v for v in pod["volumes"]))
+
+    def test_broker_capability_argument_remains_one_yaml_scalar(self):
+        raw = (demo.EXAMPLE / "k8s/broker.yaml").read_text()
+        pod = yaml.safe_load(Template(raw).substitute(IMAGE="opaque-ax-demo:test", CONFIG_MAP="test"))["spec"]["template"]["spec"]
+        broker = next(c for c in pod["containers"] if c["name"] == "broker")
+        self.assertIn("--bounding-set=-all,+sys_ptrace", broker["command"])
+        self.assertNotIn("+sys_ptrace", broker["command"])
 
 
 if __name__ == "__main__":
