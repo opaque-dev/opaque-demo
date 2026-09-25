@@ -1,0 +1,18 @@
+apiVersion: policy.opaque.dev/v1alpha1
+kind: AuthorityPolicy
+metadata:
+  name: support-status
+  namespace: demo
+spec:
+  tenantRef: opaque-orchestrator-demo
+  connectorRef: support-fixture
+  authority:
+    operation: support.case.setStatus
+    allowedStatuses: [resolved]
+    maxResources: 2
+    maxAttempts: 2
+    maxDuration: 10m
+  approval:
+    scope: Required
+    action: WithinApprovedScope
+    reviewerRef: native-reviewer

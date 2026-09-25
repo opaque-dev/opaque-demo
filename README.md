@@ -13,6 +13,12 @@ resolution.
 
 ## Build and validate
 
+For local integrations, run the [Airflow and Temporal demos](examples/orchestrators/README.md)
+or the [AX task demo](examples/ax-minikube/README.md) in minikube. These use a
+checked-in Opaque policy, the real broker, native scope review and synthetic
+support cases. Their unreleased source pins and local prerequisites are documented
+with each example.
+
 Install Rust using the pinned `rust-toolchain.toml` (1.95.0), Node.js 26.8.1 and
 Python 3.12.11. Cargo needs GitHub/crates.io access for the initial dependency
 fetch. On Linux, the WebAuthn dependencies require the OpenSSL development

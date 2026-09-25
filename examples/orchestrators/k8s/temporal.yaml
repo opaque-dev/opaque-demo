@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: runner}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector: {matchLabels: {app: opaque-temporal}}
+  template:
+    metadata: {labels: {app: opaque-temporal}}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {runAsUser: 7582, runAsGroup: 7582, runAsNonRoot: true, supplementalGroups: [7987]}
+      initContainers:
+        - name: workspace
+          image: ${IMAGE}
+          imagePullPolicy: Never
+          command: [sh, -c, 'install -d -o 7582 -g 7582 -m 0700 /workspace /workspace/demo /temporal /tmp']
+          securityContext: {runAsUser: 0, runAsGroup: 0, runAsNonRoot: false}
+          volumeMounts:
+            - {name: evidence, mountPath: /workspace}
+            - {name: platform, mountPath: /temporal}
+            - {name: tmp, mountPath: /tmp}
+      containers:
+        - name: server
+          image: temporalio/temporal@sha256:ad4c82c97bd12b417d1ea942610dbcd511afb250c4d5ed26c694009533df447e
+          imagePullPolicy: IfNotPresent
+          env: [{name: USER, value: opaque-temporal}]
+          args: [server, start-dev, --ip, 127.0.0.1, --ui-ip, 0.0.0.0, --db-filename, /temporal/state.db, --ui-disable-news-fetch]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources: {requests: {cpu: 200m, memory: 256Mi}, limits: {cpu: '2', memory: 1Gi}}
+          readinessProbe: {httpGet: {path: /, port: 8233}, periodSeconds: 3}
+          volumeMounts:
+            - {name: platform, mountPath: /temporal}
+        - name: runner
+          image: ${WORKER_IMAGE}
+          imagePullPolicy: Never
+          command: [python3, -B, /opt/opaque-demo/temporal/worker.py]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: '1', memory: 512Mi}}
+          volumeMounts:
+            - {name: socket, mountPath: /run/opaque, readOnly: true}
+            - {name: evidence, mountPath: /workspace}
+            - {name: config, mountPath: /etc/demo/workload, readOnly: true}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - {name: socket, persistentVolumeClaim: {claimName: broker-socket}}
+        - {name: evidence, persistentVolumeClaim: {claimName: evidence}}
+        - {name: platform, persistentVolumeClaim: {claimName: platform}}
+        - {name: config, configMap: {name: workload}}
+        - {name: tmp, emptyDir: {medium: Memory}}
