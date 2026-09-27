@@ -1,0 +1,28 @@
+apiVersion: policy.opaque.dev/v1alpha1
+kind: AuthorityPolicy
+metadata:
+  name: ax-staging-dispatch
+  namespace: demo
+spec:
+  tenantRef: opaque-ax-dispatch
+  connectorRef: github
+  authority:
+    # Broker operation github.dispatch_staging_workflow: one POST per attempt to
+    # /repos/{owner}/{repo}/actions/workflows/{file}/dispatches with {"ref": ref}.
+    operation: github.workflow.dispatch
+    # The complete set of targets any scope may name. A scope resource is
+    # "{repository}:{path}:{ref}"; another repository, workflow file or branch
+    # is refused at `opaque scope plan`, before a review round exists.
+    workflows:
+      - repository: opaque-dev/opaque-staging-scratch
+        path: .github/workflows/staging.yml
+        ref: main
+    maxResources: 1
+    maxAttempts: 2
+    maxDuration: 10m
+  approval:
+    # A human reviews the scope natively. Actions inside that approved scope run
+    # without a second ceremony; the policy itself is never approval.
+    scope: Required
+    action: WithinApprovedScope
+    reviewerRef: native-reviewer

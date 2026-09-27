@@ -1,0 +1,17 @@
+[
+  {
+    "action_key": "dispatch-production",
+    "resource": "opaque-dev/opaque-staging-scratch:.github/workflows/production.yml:main",
+    "expected": "denied by the approved scope before any GitHub request; nothing charged"
+  },
+  {
+    "action_key": "dispatch-staging-1",
+    "resource": "opaque-dev/opaque-staging-scratch:.github/workflows/staging.yml:main",
+    "expected": "api_accepted after three broker reads and one POST; attempt 1 of 2 charged"
+  },
+  {
+    "action_key": "dispatch-staging-2",
+    "resource": "opaque-dev/opaque-staging-scratch:.github/workflows/staging.yml:main",
+    "expected": "api_accepted; attempt 2 of 2 charged, budget exhausted; the SIGKILL variant kills the worker during this dispatch"
+  }
+]

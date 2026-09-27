@@ -1,0 +1,11 @@
+apiVersion: ax.io/v1alpha1
+kind: Task
+metadata:
+  name: opaque-staging-dispatch
+  atespace: local-demo
+spec:
+  debug: false
+  workspaces:
+    - name: evidence
+      path: /workspace/evidence
+  command: [python3, -B, /opt/demo/worker.py]

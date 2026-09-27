@@ -1,0 +1,5 @@
+{
+  "resources": ["opaque-dev/opaque-staging-scratch:.github/workflows/staging.yml:main"],
+  "expires_in_secs": 600,
+  "max_attempts": 2
+}
