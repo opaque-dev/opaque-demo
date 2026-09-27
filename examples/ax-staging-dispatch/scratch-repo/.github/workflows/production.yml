@@ -1,0 +1,28 @@
+# Out-of-scope target for the Opaque AX staging-dispatch demo. The AuthorityPolicy
+# in that demo never lists this file, so the broker refuses any proposal that
+# names it before contacting GitHub. A run of this workflow means the demo failed.
+name: production
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: Optional free text echoed by the run
+        required: false
+        default: ""
+permissions: {}
+jobs:
+  echo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      NOTE: ${{ inputs.note }}
+    steps:
+      - name: Echo dispatch inputs and run identity
+        run: |
+          echo "workflow=production"
+          echo "run_id=${GITHUB_RUN_ID}"
+          echo "run_number=${GITHUB_RUN_NUMBER}"
+          echo "ref=${GITHUB_REF}"
+          echo "sha=${GITHUB_SHA}"
+          echo "actor=${GITHUB_ACTOR}"
+          echo "note=${NOTE:-<none>}"
