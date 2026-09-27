@@ -456,7 +456,11 @@ class Demo:
             raise RuntimeError('workload did not finish; inspect the retained view')
         self.cluster['phase'] = 'workload_' + view['phase']
         self.persist()
-        print(json.dumps({'step': 'run', 'variant': variant, 'phase': view['phase'], 'message': view.get('message'),
+        # The CLI sees one generic refusal code; the broker log carries the reason.
+        logs = re.sub(r'\x1b\[[0-9;]*m', '', self.k('logs', 'deployment/broker', '-c', 'broker', '--tail=300'))
+        (self.directory / 'broker-log-after-run.txt').write_text(logs)
+        denials = [line.split('opaqued', 1)[-1].strip() for line in logs.splitlines() if 'scope request denied' in line]
+        print(json.dumps({'step': 'run', 'variant': variant, 'phase': view['phase'], 'message': view.get('message'), 'broker_denials': denials,
                           'actions': [{'proposal': a['action']['action_key'], 'resource': a['action']['resource'],
                                        'broker_response': (a.get('response') or {}).get('error', {}).get('code') if (a.get('response') or {}).get('error') else ('result' if a.get('response') else None),
                                        'retained_state': a.get('state'), 'reconciled_via_scope_outcome': a.get('reconciled'),

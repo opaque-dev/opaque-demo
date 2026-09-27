@@ -109,7 +109,10 @@ at <http://127.0.0.1:19741/>, which can start step 4 but cannot approve anything
 These are expectations. No brokered dispatch has been performed yet; see Limits.
 
 - **Step 4, plain run.** `dispatch-production` is refused by the approved scope
-  before any GitHub request; nothing is charged. `dispatch-staging-1` records
+  before any GitHub request; nothing is charged. The CLI sees the generic code
+  `scope_unavailable`; the broker log line `scope request denied or unavailable`
+  carries `error=proposed change or resource is outside scope`, and `demo.py run`
+  prints those lines. `dispatch-staging-1` records
   `api_accepted` after the broker reads the workflow, the branch head and the
   absence of a same-named tag, then POSTs `{"ref":"main"}` with no inputs.
   `dispatch-staging-2` records `api_accepted` and exhausts the two-attempt budget.
@@ -163,6 +166,13 @@ the labelled direct validity run.
   account token and no mount for it.
 - The public `examples/ax-scope/adapter.py` binds support cases only; the worker
   derives dispatch correlation with the same request-ID scheme locally.
+- Replaying `opaque scope run` for a request id the ledger already holds is
+  refused (`request identity already binds different content`) rather than
+  answered with the retained record, because each `run` prepares a fresh action
+  identity. Use `opaque scope outcome` to read a consumed request; the worker does.
+  A third in-scope proposal fails with `an ancestor budget is exhausted`; the
+  outcome of a request that was never reserved is `scope or action not found`.
+  These strings were observed in a scratch core clone at `2109af7`, not live.
 
 ## Tests
 
