@@ -4,7 +4,7 @@ WORK ?= /private/tmp/opaque-dispatch-work
 OPAQUE ?= $(WORK)/core/target/debug/opaque
 NATIVE_BIN ?= $(WORK)/core/target/debug
 STATE ?= /private/tmp/opaque-dispatch-session
-IMAGE ?= opaque-ax-staging-dispatch:2109af7
+IMAGE ?= opaque-ax-staging-dispatch:7067aa0
 TOKEN_FILE ?= /private/tmp/opaque-dispatch-github.token
 
 .PHONY: policy build deploy delegate-reviewer delegate-requester scope-review run run-sigkill evidence serve inspect test

@@ -33,7 +33,7 @@ import yaml
 EXAMPLE = Path(__file__).resolve().parent
 ROOT = EXAMPLE.parents[1]
 PROFILE = 'opaque-ax-demo'
-CORE_REVISION = '2109af7ffdb2c7bd414d7f6b107109e3134dd045'
+CORE_REVISION = '7067aa039f1ef75ae160df102147c0d182522271'
 AX_REVISION = 'f009cc81c9a571073bc1dd58cd2ed934bf2d5b1c'
 CORE_SOURCE = 'https://github.com/opaque-dev/opaque.git'
 AX_SOURCE = 'https://github.com/google/ax.git'
@@ -174,7 +174,7 @@ class Demo:
 
     def token_secret(self, token_file):
         """The token goes host file -> kubectl -> Secret -> broker init container. This
-        process never reads it, and the AX pod never mounts the Secret."""
+        process reads it only for a truncated fingerprint, and the AX pod never mounts the Secret."""
         info = token_file.stat()
         if not token_file.is_file() or token_file.is_symlink() or not 0 < info.st_size <= 4096:
             raise ValueError('GitHub token file must be a regular non-empty file of at most 4096 bytes')
@@ -259,8 +259,12 @@ class Demo:
         for name, expected in self.cluster['native_hashes'].items():
             if hashlib.sha256((Path(self.cluster['native_bin']) / name).read_bytes()).hexdigest() != expected:
                 raise ValueError('native reviewer executable changed')
-        return command([Path(self.cluster['native_bin']) / 'opaque-approver', *args,
-                        '--state-dir', self.cluster['workstation']], timeout=timeout)
+        try:
+            return command([Path(self.cluster['native_bin']) / 'opaque-approver', *args,
+                            '--state-dir', self.cluster['workstation']], timeout=timeout)
+        except subprocess.CalledProcessError as error:
+            # The reviewer's own reason (expired, rejected round, UI unavailable) is the diagnosis.
+            raise RuntimeError(f'opaque-approver {args[0]} failed: {(error.stderr or "").strip()}') from error
 
     def enroll(self):
         fingerprint = self.exec('sha256sum', '/var/lib/opaque/approval_server.cert', peer='broker').split()[0]
@@ -353,8 +357,11 @@ class Demo:
             raise RuntimeError('delegation was not granted')
         session = response['result']
         self.exec('python3', '-B', '/opt/demo/fixtures/client.py', 'session', peer=peer, data=json.dumps(session))
-        receipt = json.loads(self.native('receipt', '--approval-id', pending[0]['approval_id']))
-        save(self.directory / (subject + '-delegation-receipt.json'), receipt)
+        # A delegation challenge carries no task binding, so the broker stores no workstation
+        # receipt for it (GET /workstation/receipts answers 404). The broker log records it as
+        # approval.granted for operation agent_session_start.
+        save(self.directory / (subject + '-delegation.json'), {'approval_id': pending[0]['approval_id'], 'granted': True,
+             'workstation_receipt': None, 'record': 'broker audit log: approval.granted, operation agent_session_start'})
 
     def delegate_reviewer(self):
         if self.cluster.get('phase') != 'awaiting_native_review':

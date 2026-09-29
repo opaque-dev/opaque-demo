@@ -121,6 +121,21 @@ class CredentialBoundaryTests(unittest.TestCase):
         self.assertTrue(all("hostPath" not in v and "secret" not in v for v in pod["volumes"]))
         self.assertNotIn("github", json.dumps(pod).lower())
 
+    def test_image_sets_modes_the_non_root_runner_needs_despite_the_build_umask(self):
+        dockerfile = (EXAMPLE / "Dockerfile").read_text()
+        for line in ("install -d -m 0755 /opt/opaque/ax-scope",
+                     "COPY --chmod=0755 ax-task-runner /usr/local/bin/ax-task-runner",
+                     "COPY --chmod=0644 --from=build /source/examples/ax-scope/adapter.py /opt/opaque/ax-scope/adapter.py"):
+            self.assertIn(line, dockerfile)
+
+    def test_native_reviewer_failure_reports_the_reviewer_reason(self):
+        failure = demo.subprocess.CalledProcessError(1, ["opaque-approver"], stderr="opaque-approver: approval expired; no decision sent\n")
+        instance = demo.Demo.__new__(demo.Demo)
+        instance.cluster = {"native_hashes": {}, "native_bin": "/nonexistent", "workstation": "/nonexistent"}
+        with patch.object(demo, "command", side_effect=failure):
+            with self.assertRaisesRegex(RuntimeError, "opaque-approver review failed: .*approval expired"):
+                instance.native("review", "--approval-id", "x")
+
     def test_token_secret_reaches_only_the_broker_init_container(self):
         pod = self.pod("broker.yaml", CONFIG_MAP="test")["spec"]["template"]["spec"]
         secrets = [v for v in pod["volumes"] if "secret" in v]
