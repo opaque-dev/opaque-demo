@@ -21,52 +21,31 @@ and controller schema 2 preserve that alias; legacy records resolve explicitly
 to Gemma. See [OPERATIONS.md](OPERATIONS.md#fixed-model-selection-and-rollout)
 for rollout status requirements, local test exceptions and rollback compatibility.
 
-## Initial cluster evidence, 2026-09-04
+## Cluster assumptions and limits
 
-Read-only discovery used the existing `admin@turingpi` context. All six nodes are
-ARM64. `talos-ek0-5dx` has approximately 30Gi allocatable memory but a control-plane
-NoSchedule taint; this deployment does not tolerate it. `talos-lwn-dba` is
-unreachable. Scheduled ordinary-container requests on `talos-ssm-o4m` total
-2564m CPU and 2442Mi memory against 3950m/~3297Mi allocatable. This is request
-accounting, not measured usage; `kubectl top nodes` reported that the Metrics API
-is unavailable. The Jetson nodes have CPU/memory request headroom, but all three
-advertised GPUs are already requested by existing workloads.
+The templates assume an ARM64 cluster with an existing in-cluster model service.
+The initial demo reused that service without deploying another model, reserving
+another GPU or preempting existing work. Worker and controller both serialize
+demo model requests; other clients of the same model service are outside that
+demo budget. Cluster-specific discovery, capacity and model rollout records are
+kept with the operator's private validation records, not in this repository.
 
-These initial observations predate the separately recorded Qwen3.5 deployment.
-Current model changes are recorded in [CREDIT-VALIDATION.md](CREDIT-VALIDATION.md);
-the older placement and request accounting below are not a current free-capacity
-claim.
+Build the runtime image for `linux/arm64`, then configure its exact `@sha256:`
+digest. A digest protects content selection, not registry transport privacy. A
+plain-HTTP registry or a model service without a verified immutable identity is
+an infrastructure limitation that the digest does not remove.
 
-The existing Gemma service is
-`llama-server.gemma4.svc.cluster.local:8080`, model
-`gemma-4-E2B-it-Q3_K_M.gguf`, one parallel slot and 2048-token configured context.
-Its host-mounted executable and model do not have verified immutable identities.
-The initial demo reused this service without deploying another model, reserving
-another GPU or preempting existing work. The later Qwen model deployment is
-recorded separately above. Worker and controller both serialize demo model requests; unrelated
-existing cluster clients are outside that demo budget.
+`k8s-tunnel.yaml` is for a new dedicated tunnel connected to a fixed Workers VPC
+service, without a public origin route. It does not change existing tunnels.
 
-The existing registry's `http://192.168.25.201:5050/v2/` returned 200. This verifies
-read reachability only, not push permission. Build the runtime image for
-`linux/arm64`, then configure its exact `@sha256:` digest. The plain HTTP registry
-and existing mutable Gemma deployment are internal infrastructure limitations;
-an image digest protects content selection, not registry transport privacy.
-
-Only the Tailscale ingress class was found. Existing Cloudflare tunnels in
-`kcirtap` and `ukodus` remain untouched. `k8s-tunnel.yaml` is for a new dedicated
-tunnel connected to a fixed Workers VPC service, without a public origin route.
-
-Flannel v0.27.4 was observed without a network-policy controller. No RuntimeClass,
-ResourceQuota, LimitRange or ValidatingAdmissionPolicy existed before this work.
-The existing seven NetworkPolicies were all in ArgoCD. Flannel documents a
-[separate policy controller](https://github.com/flannel-io/flannel/blob/master/Documentation/netpol.md),
-and Kubernetes requires a
+These templates do not install a network-policy controller, and Kubernetes
+enforces NetworkPolicy only with a
 [policy-enforcing network implementation](https://kubernetes.io/docs/concepts/services-networking/network-policies/).
-These templates do not install one. Namespace/RBAC separation and bearer-authenticated
-proxies do not establish network or microVM isolation; compromised demo processes
-could reach other routable cluster services. Use synthetic data only within this
-boundary. No live cluster deployment or adversarial network probe is claimed by
-the local controller tests.
+Namespace/RBAC separation and bearer-authenticated proxies do not establish
+network or microVM isolation; compromised demo processes could reach other
+routable cluster services. Use synthetic data only within this boundary. No live
+cluster deployment or adversarial network probe is claimed by the local
+controller tests.
 
 ## Local checks and deployment inputs
 
