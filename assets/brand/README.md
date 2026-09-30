@@ -1,7 +1,7 @@
 # Pinned Opaque brand assets
 
 This directory vendors the shared brand foundation from
-[`kcirtapfromspace/opaque`](https://github.com/kcirtapfromspace/opaque),
+[`opaque-dev/opaque`](https://github.com/opaque-dev/opaque),
 `assets/brand`. The palette, typography, glyph, embedded allowlist and upstream
 font manifest are shared with the core product. Components and interaction
 styles remain in the showcase. `provenance.json` records the canonical revision
