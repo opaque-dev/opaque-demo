@@ -2,7 +2,7 @@
 
 These files describe a possible next provider. They are not supported Opaque
 task manifests and were not applied to the cluster. No inference was run and no
-GPU was allocated. See the [read-only assessment](../../docs/product/2026-09-04-gpu-showcase.md).
+GPU was allocated.
 
 `existing-inference.contract.json` proposes three serial calls to the ready
 Gemma service after owner approval and identity verification. It records bounds

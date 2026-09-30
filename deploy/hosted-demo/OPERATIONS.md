@@ -31,13 +31,14 @@ and an authenticated Wrangler version supporting the checked-in configuration.
 A macOS binary cannot be used in the runtime image. Use the existing configured
 Docker builder; these instructions do not switch contexts or install runtimes.
 
-The registry currently requires plain HTTP. The explicit `--insecure` below
-applies only to that internal registry; it is not a general TLS exception.
+Set `RUNTIME_REPOSITORY` to the cluster's internal registry before running the
+block. That registry currently requires plain HTTP. The explicit `--insecure`
+below applies only to it; it is not a general TLS exception.
 
 ```sh
 umask 077
 export OPAQUE_RENDER_DIR="$(mktemp -d /private/tmp/opaque-hosted-render.XXXXXX)"
-export RUNTIME_REPOSITORY=192.168.25.201:5050/opaque-hosted-demo
+export RUNTIME_REPOSITORY="${RUNTIME_REPOSITORY:?set to REGISTRY_HOST:PORT/opaque-hosted-demo}"
 export RUNTIME_TAG="$RUNTIME_REPOSITORY:20260904"
 export WORKER_ORIGIN=https://demo.opaque.info
 export CLOUDFLARED_IMAGE=cloudflare/cloudflared@sha256:51c9cefcb4569df44e1ad403ab1d3d8065aa8e84339bcfc6aee75502e1140339
@@ -182,19 +183,16 @@ denied requests before enabling that alias. Keep an existing lease's selected
 backend reachable through cleanup even if its alias is removed from new joins.
 The shared global model-request fence remains one across all profiles.
 
-The dedicated Qwen service uses the reviewed `qwen35-model.yaml`, a bounded
-8 GiB model PVC and verified GGUF bytes. Its GPU allocation is separate from
-disposable lease Pods. The checked-in replica count is now one for the qualified
-deployment. For an initial install, stage the Deployment at zero until the
-artifact download and explicit GPU allocation are complete. The operator backed
-up the stalled old Qwen3-14B
-head at `/private/tmp/opaque-credit-deployment/llamacpp-head-before-model-update.yaml`
-and scaled only that head down to release Jetson 1. RPC workers 2/3 and Gemma
-were unchanged. That temporary file is not a durable backup; retain a protected
-copy. Do not restart the old head while Qwen3.5 holds the same GPU, and do not
-infer that the previously stalled service becomes healthy just by restoring
-its replica count. Actual qualification and current rollout status belong in
-[CREDIT-VALIDATION.md](CREDIT-VALIDATION.md).
+The dedicated Qwen service runs from a reviewed, cluster-specific manifest kept
+with the operator's private configuration: a bounded 8 GiB model PVC, verified
+GGUF bytes and one replica for the qualified deployment. Its GPU allocation is
+separate from disposable lease Pods. For an initial install, stage the Deployment
+at zero until the artifact download and explicit GPU allocation are complete.
+If Qwen takes a GPU from another model server, back up that server's manifest to
+protected storage and scale down only that server. Do not restart it while Qwen
+holds the same GPU, and do not assume a previously stalled server becomes
+healthy just by restoring its replica count. Record qualification and rollout
+status with the operator's private validation records.
 
 Keep `--cache-ram 0` on the Qwen service. The pinned server otherwise defaults
 to an 8192 MiB cross-request prompt cache, exceeding the container's entire

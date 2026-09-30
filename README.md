@@ -68,3 +68,11 @@ Builds and fixture tests do not establish production readiness. Validate approva
 credential custody, and runtime behavior for the intended deployment. Keep runtime
 credentials, generated binaries, and session artifacts out of source control.
 Publish assets or change a cluster through the authorized deployment workflow.
+
+## License
+
+Code, configuration, and build artifacts are licensed under [Apache-2.0](LICENSE),
+and documentation prose under [CC BY 4.0](LICENSE-DOCS). Bundled fonts keep their
+SIL Open Font License notices in [assets/brand/licenses](assets/brand/licenses).
+[NOTICE](NOTICE) records the scope. Revisions before this license was added
+shipped without one.
