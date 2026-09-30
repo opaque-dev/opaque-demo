@@ -7,7 +7,7 @@ approval. It is not evidence of a real provider account or human ceremony.
 
 ## Build and bind the core binaries
 
-Use a reviewed checkout of `kcirtapfromspace/opaque` and its full 40-character
+Use a reviewed checkout of `opaque-dev/opaque` and its full 40-character
 revision. Build outputs must stay outside the checkout:
 
 ```sh

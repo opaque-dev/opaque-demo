@@ -23,7 +23,7 @@ class ProvenanceTests(unittest.TestCase):
         git("init", "-q")
         git("config", "user.name", "Synthetic Test")
         git("config", "user.email", "fixture@example.invalid")
-        git("remote", "add", "origin", "https://github.com/kcirtapfromspace/opaque.git")
+        git("remote", "add", "origin", "https://github.com/opaque-dev/opaque.git")
         (self.core / "source.txt").write_text("synthetic source\n")
         git("add", "source.txt")
         git("commit", "-q", "-m", "synthetic fixture only")
@@ -36,7 +36,7 @@ class ProvenanceTests(unittest.TestCase):
             path.write_text("#!/bin/sh\nprintf synthetic\\n\n")
             path.chmod(0o700)
             self.binaries[name] = {"path": name, "sha256": artifacts.digest(path)}
-        self.value = {"schema": artifacts.SCHEMA, "provenance": "local-build", "source": artifacts.source_snapshot(self.core, self.rev, "kcirtapfromspace/opaque"), "binaries": self.binaries}
+        self.value = {"schema": artifacts.SCHEMA, "provenance": "local-build", "source": artifacts.source_snapshot(self.core, self.rev, artifacts.CORE_REPOSITORY), "binaries": self.binaries}
         self.manifest = self.out / "core-binaries.json"
         artifacts.write_json(self.manifest, self.value)
 
