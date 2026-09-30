@@ -1600,7 +1600,7 @@ checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 [[package]]
 name = "opaque-core"
 version = "0.3.0"
-source = "git+https://github.com/kcirtapfromspace/opaque.git?rev=92c854f2ef0d67fece04d43fd4a3147a911368f6#92c854f2ef0d67fece04d43fd4a3147a911368f6"
+source = "git+https://github.com/opaque-dev/opaque.git?rev=92c854f2ef0d67fece04d43fd4a3147a911368f6#92c854f2ef0d67fece04d43fd4a3147a911368f6"
 dependencies = [
  "base64 0.22.1",
  "ed25519-dalek",

@@ -20,10 +20,6 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
-      - name: Require private source repository
-        env:
-          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
-        run: test "$REPOSITORY_PRIVATE" = true
       - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "1.95.0"
@@ -39,7 +35,7 @@ jobs:
         run: python3 -B scripts/build_hosted_artifact.py build --demo-revision "$GITHUB_SHA" --output "$RUNNER_TEMP/demo-artifact" --profile debug
       - name: Verify generated artifact provenance and privacy
         run: python3 -B scripts/build_hosted_artifact.py verify --directory "$RUNNER_TEMP/demo-artifact/payload"
-      - name: Retain private CI artifact for the exact revision
+      - name: Retain CI artifact for the exact revision
         uses: actions/upload-artifact@v4
         with:
           name: demo-local-build-${{ matrix.os }}
@@ -56,10 +52,6 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
-      - name: Require private source repository
-        env:
-          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
-        run: test "$REPOSITORY_PRIVATE" = true
       - uses: actions/setup-node@v6
         with:
           node-version: "26.8.1"

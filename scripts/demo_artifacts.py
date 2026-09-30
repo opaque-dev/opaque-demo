@@ -16,6 +16,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "opaque.demo.core-binaries.v1"
+CORE_REPOSITORY = "opaque-dev/opaque"
 MAX_FILE = 128 * 1024 * 1024
 
 
@@ -79,14 +80,14 @@ def build_core(core, revision, output, profile="debug", allow_dirty=False):
     core, output = Path(core).resolve(), Path(output).resolve()
     if output == core or core in output.parents:
         raise ValueError("build output must be outside the source checkout")
-    before = source_snapshot(core, revision, "kcirtapfromspace/opaque", allow_dirty)
+    before = source_snapshot(core, revision, CORE_REPOSITORY, allow_dirty)
     output.mkdir(mode=0o700, parents=True, exist_ok=True)
     target = output / "target"
     command = ["cargo", "build", "--locked", "--manifest-path", str(core / "Cargo.toml"), "--target-dir", str(target), "-p", "opaque", "-p", "opaqued"]
     if profile == "release":
         command.append("--release")
     subprocess.run(command, cwd=core, check=True, timeout=1800)
-    after = source_snapshot(core, revision, "kcirtapfromspace/opaque", allow_dirty)
+    after = source_snapshot(core, revision, CORE_REPOSITORY, allow_dirty)
     if after != before:
         raise ValueError("source changed during compilation; rebuild from a stable snapshot")
     binaries = {name: {"path": f"target/{profile}/{name}", "sha256": digest(target / profile / name)} for name in ("opaque", "opaqued")}
@@ -103,7 +104,7 @@ def verify_core(manifest_path, core, revision, allow_dirty=False):
     value = json.loads(manifest_path.read_text())
     if value.get("schema") != SCHEMA or value.get("provenance") != "local-build":
         raise ValueError("a supported local-build manifest is required")
-    if value.get("source") != source_snapshot(core, revision, "kcirtapfromspace/opaque", allow_dirty):
+    if value.get("source") != source_snapshot(core, revision, CORE_REPOSITORY, allow_dirty):
         raise ValueError("binary manifest source snapshot differs from the selected checkout")
     binaries = {}
     for name in ("opaque", "opaqued"):
