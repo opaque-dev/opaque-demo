@@ -5,7 +5,7 @@ members = ["crates/opaque-showcase"]
 [workspace.package]
 version = "0.1.0"
 license = "BUSL-1.1"
-repository = "https://github.com/kcirtapfromspace/opaque-demo"
+repository = "https://github.com/opaque-dev/opaque-demo"
 homepage = "https://opaque.info"
 
 [profile.release]
@@ -17,7 +17,7 @@ strip = true
 [workspace.dependencies]
 # Consume the public contract at a reviewed immutable revision; never depend on
 # a sibling checkout or import private workspace implementation into core.
-opaque-core = { git = "https://github.com/kcirtapfromspace/opaque.git", rev = "92c854f2ef0d67fece04d43fd4a3147a911368f6" }
+opaque-core = { git = "https://github.com/opaque-dev/opaque.git", rev = "92c854f2ef0d67fece04d43fd4a3147a911368f6" }
 axum = "0.8"
 base64 = "0.22"
 clap = { version = "4.5.30", features = ["derive"] }

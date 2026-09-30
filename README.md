@@ -5,7 +5,7 @@ approve a task that reads fictional loan-application metrics, run it once, inspe
 the result, and try again to see the repeat blocked. Portfolio chat has separate
 session limits and permissions.
 
-This private repository contains the demo gateway, browser UI, and hosting code.
+This repository contains the demo gateway, browser UI, and hosting code.
 The `opaque-showcase` gateway consumes the public core contract through a Git
 dependency pinned to an exact revision in [Cargo.toml](Cargo.toml). Build it from
 this checkout; no sibling core checkout is required. `Cargo.lock` fixes dependency
@@ -37,8 +37,10 @@ assets.
 
 The [CI workflow](.github/workflows/ci.yml) runs Rust checks on Linux and macOS,
 and browser, Worker, and Python fixtures on Linux. It also checks standalone
-issuer initialization and retains private source-bound build artifacts for seven
-days. It has read-only repository permissions and no deployment jobs or credentials.
+issuer initialization and retains source-bound build artifacts for seven days;
+any signed-in GitHub user can download them from this public repository. The
+workflow has read-only repository permissions and no deployment jobs or
+credentials.
 
 ## Core dependency updates
 

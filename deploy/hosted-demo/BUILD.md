@@ -1,7 +1,7 @@
 # Build a source-bound hosted artifact
 
 The hosted image uses a separately generated payload instead of an undeclared
-`deploy/hosted-demo/bin/opaque-showcase`. Build from this standalone private
+`deploy/hosted-demo/bin/opaque-showcase`. Build from this standalone
 repository at a reviewed full commit revision:
 
 ```sh
