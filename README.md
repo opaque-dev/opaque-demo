@@ -52,6 +52,8 @@ repositories.
 
 ## Contents
 
+- [examples/ax-minikube](examples/ax-minikube) — repository-configured AuthorityPolicy, real Opaque broker, native scope review and AX workload on minikube; identity and provider are local fixtures.
+- [examples/ax-recovery-fixture](examples/ax-recovery-fixture) — separate synthetic crash experiment with retained evidence and pod replacement.
 - [examples/github-ci](examples/github-ci) — real public GitHub CI inference through the configured core broker, with a local receipt view.
 - [crates/opaque-showcase](crates/opaque-showcase) — OAuth MCP metrics gateway and chat UI, scoped to each tenant.
 - [assets/brand](assets/brand) — shared visual assets and their provenance.

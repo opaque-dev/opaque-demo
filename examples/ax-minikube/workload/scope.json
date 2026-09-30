@@ -1,0 +1,6 @@
+{
+  "resources": ["accepted", "lost-ack"],
+  "statuses": ["resolved"],
+  "expires_in_secs": 600,
+  "max_attempts": 2
+}

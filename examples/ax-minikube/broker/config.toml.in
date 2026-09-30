@@ -1,0 +1,48 @@
+# Operator configuration. Setup substitutes only deployment bindings below.
+# Policy limits live in ../policies/support-status.yaml.
+data_dir = "/var/lib/opaque"
+require_seal = true
+enforce_agent_sessions = true
+approval_backend = "native"
+workstation_test_mode = false
+workstation_approvers = [${WORKSTATION}]
+
+[[known_human_clients]]
+name = "Owned demo identity protocol client"
+exe_path = "/usr/local/bin/python3.12"
+
+[tenant]
+id = "opaque-ax-demo"
+[trust_domain]
+enforce = true
+socket_group = "7987"
+socket_path = "/run/opaque/opaqued.sock"
+[approval]
+server_bind = "0.0.0.0:18913"
+timeout_secs = 180
+session_factor = "paired_workstation"
+[identity]
+issuer = "http://127.0.0.1:18912"
+client_id = "opaque-live-scope-fixture"
+redirect_port = 18916
+required = true
+session_ttl_secs = 3600
+allowed_email_domains = ["example.invalid"]
+allowed_subjects = ["reviewer", "requester"]
+
+# Setup omits the following section during the two enrollment stages only.
+[authority_policy]
+path = "/etc/opaque/policy/support-status.yaml"
+digest = "${POLICY_DIGEST}"
+name = "ax-support-status"
+namespace = "demo"
+tenant_ref = "opaque-ax-demo"
+connector_ref = "support-fixture"
+reviewer_ref = "native-reviewer"
+reviewer_id = "${REVIEWER_ID}"
+reviewer_public_key = "${REVIEWER_PUBLIC_KEY}"
+generation = 1
+[authority_policy.profile]
+endpoint = "https://localhost:18914/"
+token_file = "/var/lib/opaque/provider.token"
+ca_certificate_file = "/var/lib/opaque/provider-ca.pem"
