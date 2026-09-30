@@ -55,12 +55,15 @@ def save(path, value):
 
 
 class Demo:
+    example = EXAMPLE
+    namespace_prefix = 'opaque-ax'
+
     def __init__(self, directory):
         self.directory = directory
         self.cluster = json.loads((directory / 'cluster.json').read_text())
         if self.cluster.get('kind') != 'policy-broker' or self.cluster.get('profile') != PROFILE:
             raise ValueError('this command requires a policy-broker deployment, not the recovery fixture')
-        if not re.fullmatch(r'opaque-ax-[0-9a-f]{10}', self.cluster['namespace']):
+        if not re.fullmatch(re.escape(self.namespace_prefix) + r'-[0-9a-f]{10}', self.cluster['namespace']):
             raise ValueError('invalid namespace')
         self.lock, self.busy, self.cache, self.error = threading.Lock(), False, None, None
 
@@ -91,7 +94,7 @@ class Demo:
         return result
 
     def resource(self, filename, **values):
-        raw = Template((EXAMPLE / 'k8s' / filename).read_text()).substitute(IMAGE=self.cluster['image'], **values)
+        raw = Template((self.example / 'k8s' / filename).read_text()).substitute(IMAGE=self.cluster['image'], **values)
         docs = list(yaml.safe_load_all(raw))
         for doc in docs:
             doc['metadata'].update(namespace=self.cluster['namespace'], labels={OWNER: self.cluster['run_id']})
@@ -109,11 +112,11 @@ class Demo:
 
     def start_broker(self, stage):
         mapped = stage != 'bootstrap'
-        device = {'name': 'Native AX demo reviewer', 'public_key_hex': self.cluster['workstation_public_key']}
+        device = {'name': 'Native Opaque demo reviewer', 'public_key_hex': self.cluster['workstation_public_key']}
         reviewer = self.cluster.get('reviewer_identity', {}).get('principal_id', '')
         if mapped:
             device['principal_id'] = reviewer
-        source = (EXAMPLE / 'broker/config.toml.in').read_text()
+        source = (self.example / 'broker/config.toml.in').read_text()
         if stage != 'policy':
             source = source.split('[authority_policy]')[0]
         config = Template(source).substitute(WORKSTATION='{'+', '.join(k+' = '+json.dumps(v) for k,v in device.items())+'}',
@@ -222,9 +225,9 @@ class Demo:
     def custody(self):
         self.exec('sh', '-c', 'set -eu; [ "$(id -u)" = 7582 ]; [ ! -e /var/lib/opaque ]; [ ! -e /fixture ]; '
                   '[ "$(stat -c "%a %u %g" /run/opaque/daemon.token)" = "640 7581 7987" ]', peer='runner')
-        denied = self.rpc('scope_plan', json.loads((EXAMPLE / 'workload/scope.json').read_text()), peer='runner', allow_error=True)
+        denied = self.rpc('scope_plan', json.loads((self.example / 'workload/scope.json').read_text()), peer='runner', allow_error=True)
         if not (denied.get('error') or denied.get('transport_error')):
-            raise ValueError('AX runner obtained authority before native delegation')
+            raise ValueError('runner obtained authority before native delegation')
         save(self.directory / 'pre-delegation-denial.json', denied)
 
     def delegate(self, subject, peer):
@@ -237,7 +240,7 @@ class Demo:
         save(marker, {'subject': subject, 'native_only': True})
         with ThreadPoolExecutor(max_workers=1) as pool:
             waiting = pool.submit(self.rpc, 'agent_session_start', {'mode': 'delegated', 'ttl_secs': 3600,
-                'label': 'ax-demo-' + subject, 'reason': 'Inspect repository policy' if subject == 'reviewer' else 'Run repository support scope'}, allow_error=True)
+                'label': 'opaque-demo-' + subject, 'reason': 'Inspect repository policy' if subject == 'reviewer' else 'Run repository support scope'}, allow_error=True)
             deadline = time.monotonic() + 25
             while time.monotonic() < deadline:
                 pending = json.loads(self.native('list'))

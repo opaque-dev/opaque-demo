@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: runner}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector: {matchLabels: {app: opaque-airflow}}
+  template:
+    metadata: {labels: {app: opaque-airflow}}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {runAsUser: 7582, runAsGroup: 0, runAsNonRoot: true, supplementalGroups: [7987]}
+      initContainers:
+        - name: workspace
+          image: ${IMAGE}
+          imagePullPolicy: Never
+          command: [sh, -c, 'install -d -o 7582 -g 0 -m 0700 /workspace /workspace/demo /airflow /tmp']
+          securityContext: {runAsUser: 0, runAsGroup: 0, runAsNonRoot: false}
+          volumeMounts:
+            - {name: evidence, mountPath: /workspace}
+            - {name: platform, mountPath: /airflow}
+            - {name: tmp, mountPath: /tmp}
+      containers:
+        - name: runner
+          image: ${WORKER_IMAGE}
+          imagePullPolicy: Never
+          command: [airflow, standalone]
+          env:
+            - {name: AIRFLOW_HOME, value: /opt/airflow}
+            - {name: OPAQUE_SOCK, value: /run/opaque/opaqued.sock}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          resources: {requests: {cpu: 500m, memory: 1Gi}, limits: {cpu: '2', memory: 3Gi}}
+          readinessProbe: {httpGet: {path: /api/v2/monitor/health, port: 8080}, periodSeconds: 5, initialDelaySeconds: 15}
+          volumeMounts:
+            - {name: socket, mountPath: /run/opaque, readOnly: true}
+            - {name: evidence, mountPath: /workspace}
+            - {name: platform, mountPath: /opt/airflow}
+            - {name: config, mountPath: /etc/demo/workload, readOnly: true}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - {name: socket, persistentVolumeClaim: {claimName: broker-socket}}
+        - {name: evidence, persistentVolumeClaim: {claimName: evidence}}
+        - {name: platform, persistentVolumeClaim: {claimName: platform}}
+        - {name: config, configMap: {name: workload}}
+        - {name: tmp, emptyDir: {medium: Memory}}
