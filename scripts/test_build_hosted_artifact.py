@@ -22,7 +22,7 @@ class HostedArtifactTests(unittest.TestCase):
         (self.root / "opaque-showcase").write_bytes(b"\x7fELFsynthetic binary")
         privacy.package_worker_site(self.root / "public")
         self.files = {p.relative_to(self.root).as_posix(): artifacts.digest(p) for p in self.root.rglob("*") if p.is_file()}
-        self.manifest = {"schema": hosted.SCHEMA, "provenance": "local-build", "demo_source": {"repository":"kcirtapfromspace/opaque-demo", "revision":"a"*40, "dirty":False, "source_sha256":"b"*64}, "core_contract_revision":"c"*40, "target":"x86_64-unknown-linux-gnu", "profile":"debug", "privacy_gate":"passed-generated-worker-artifact", "files":self.files}
+        self.manifest = {"schema": hosted.SCHEMA, "provenance": "local-build", "demo_source": {"repository":hosted.DEMO_REPOSITORY, "revision":"a"*40, "dirty":False, "source_sha256":"b"*64}, "core_contract_revision":"c"*40, "target":"x86_64-unknown-linux-gnu", "profile":"debug", "privacy_gate":"passed-generated-worker-artifact", "files":self.files}
         self.save()
 
     def save(self):
@@ -53,7 +53,7 @@ class HostedArtifactTests(unittest.TestCase):
     def test_both_pin_files_must_agree(self):
         self.assertRegex(hosted.core_pin(hosted.ROOT), r"^[0-9a-f]{40}$")
         (self.root / "Cargo.toml").write_text('[workspace.dependencies]\nopaque-core={rev="'+'a'*40+'"}\n')
-        (self.root / "Cargo.lock").write_text('[[package]]\nname="opaque-core"\nsource="git+https://github.com/kcirtapfromspace/opaque.git?rev=changed#changed"\n')
+        (self.root / "Cargo.lock").write_text('[[package]]\nname="opaque-core"\nsource="git+https://github.com/opaque-dev/opaque.git?rev=changed#changed"\n')
         with self.assertRaisesRegex(ValueError, "differs"):
             hosted.core_pin(self.root)
 
@@ -69,6 +69,10 @@ class HostedArtifactTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "source provenance"):
             hosted.verify(self.root)
         self.manifest["demo_source"]["repository"] = "kcirtapfromspace/opaque-demo"
+        self.save()
+        with self.assertRaisesRegex(ValueError, "source provenance"):
+            hosted.verify(self.root)
+        self.manifest["demo_source"]["repository"] = hosted.DEMO_REPOSITORY
         self.manifest["files"].pop(hosted.WORKER_FILES[0])
         self.save()
         with self.assertRaisesRegex(ValueError, "omits"):

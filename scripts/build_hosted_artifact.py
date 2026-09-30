@@ -14,6 +14,7 @@ import demo_artifacts as artifacts
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "opaque.demo.hosted-build.v1"
+DEMO_REPOSITORY = "opaque-dev/opaque-demo"
 WORKER_FILES = tuple("deploy/cloudflare-demo/src/" + name + ".mjs" for name in ("http", "queue", "models", "scheduler", "worker", "leads"))
 RUNTIME_FILES = ("deploy/hosted-demo/runtime.py", "deploy/hosted-demo/controller.py", "deploy/hosted-demo/credit_source.py", "deploy/hosted-demo/model_profiles.py", "scripts/metrics_chat_dogfood.py")
 
@@ -23,7 +24,7 @@ def core_pin(repository):
     revision = cargo["workspace"]["dependencies"]["opaque-core"]["rev"]
     lock = tomllib.loads((repository / "Cargo.lock").read_text())
     records = [p for p in lock["package"] if p["name"] == "opaque-core"]
-    if len(records) != 1 or records[0].get("source") != f"git+https://github.com/kcirtapfromspace/opaque.git?rev={revision}#{revision}":
+    if len(records) != 1 or records[0].get("source") != f"git+https://github.com/{artifacts.CORE_REPOSITORY}.git?rev={revision}#{revision}":
         raise ValueError("locked core contract revision differs from Cargo.toml")
     return revision
 
@@ -32,7 +33,7 @@ def build(repository, revision, output, profile="release", target=None, allow_di
     repository, output = repository.resolve(), output.resolve()
     if output == repository or repository in output.parents:
         raise ValueError("artifact output must be outside the source checkout")
-    before = artifacts.source_snapshot(repository, revision, "kcirtapfromspace/opaque-demo", allow_dirty)
+    before = artifacts.source_snapshot(repository, revision, DEMO_REPOSITORY, allow_dirty)
     pin = core_pin(repository)
     output.mkdir(parents=True, mode=0o700, exist_ok=True)
     host = subprocess.run(["rustc", "-vV"], check=True, capture_output=True, text=True, timeout=10).stdout
@@ -43,7 +44,7 @@ def build(repository, revision, output, profile="release", target=None, allow_di
     if target:
         command += ["--target", target]
     subprocess.run(command, cwd=repository, check=True, timeout=1800)
-    if before != artifacts.source_snapshot(repository, revision, "kcirtapfromspace/opaque-demo", allow_dirty):
+    if before != artifacts.source_snapshot(repository, revision, DEMO_REPOSITORY, allow_dirty):
         raise ValueError("demo source changed during the build")
     compiled = output / "target"
     if target:
@@ -76,7 +77,7 @@ def build(repository, revision, output, profile="release", target=None, allow_di
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(path, destination)
         payload[relative.as_posix()] = artifacts.digest(destination)
-    if before != artifacts.source_snapshot(repository, revision, "kcirtapfromspace/opaque-demo", allow_dirty):
+    if before != artifacts.source_snapshot(repository, revision, DEMO_REPOSITORY, allow_dirty):
         raise ValueError("demo source changed during artifact packaging")
     value = {"schema": SCHEMA, "provenance": "local-build", "demo_source": before, "core_contract_revision": pin, "target": triple, "profile": profile, "privacy_gate": "passed-generated-worker-artifact", "files": payload}
     artifacts.write_json(payload_dir / "artifact-provenance.json", value)
@@ -92,7 +93,7 @@ def verify(directory, require_linux=False):
     if value.get("schema") != SCHEMA or value.get("provenance") != "local-build" or value.get("privacy_gate") != "passed-generated-worker-artifact":
         raise ValueError("unsupported or unqualified artifact manifest")
     source = value.get("demo_source", {})
-    if not isinstance(source, dict) or source.get("repository") != "kcirtapfromspace/opaque-demo" or not isinstance(source.get("dirty"), bool):
+    if not isinstance(source, dict) or source.get("repository") != DEMO_REPOSITORY or not isinstance(source.get("dirty"), bool):
         raise ValueError("artifact source provenance is incomplete")
     for field, length in ((source.get("revision"), 40), (source.get("source_sha256"), 64), (value.get("core_contract_revision"), 40)):
         if not isinstance(field, str) or not re.fullmatch("[0-9a-f]{" + str(length) + "}", field):
