@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: runner}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector: {matchLabels: {app: opaque-ax-runner}}
+  template:
+    metadata: {labels: {app: opaque-ax-runner}}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {runAsUser: 7582, runAsGroup: 7582, runAsNonRoot: true, supplementalGroups: [7987]}
+      initContainers:
+        - name: workspace
+          image: ${IMAGE}
+          imagePullPolicy: Never
+          command: [sh, -c, 'install -d -o 7582 -g 7582 -m 0700 /workspace /workspace/demo; chown 7582:7582 /ax /tmp']
+          securityContext: {runAsUser: 0, runAsGroup: 0, runAsNonRoot: false}
+          volumeMounts:
+            - {name: evidence, mountPath: /workspace}
+            - {name: ax, mountPath: /ax}
+            - {name: tmp, mountPath: /tmp}
+      containers:
+        - name: runner
+          image: ${IMAGE}
+          imagePullPolicy: Never
+          command: [/usr/local/bin/ax-task-runner, --port, '8080']
+          env:
+            - name: AX_TASK_YAML
+              valueFrom: {configMapKeyRef: {name: workload, key: task.yaml}}
+            - {name: OPAQUE_SOCK, value: /run/opaque/opaqued.sock}
+            - name: POD_UID
+              valueFrom: {fieldRef: {fieldPath: metadata.uid}}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+            seccompProfile: {type: RuntimeDefault}
+          resources: {requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: '2', memory: 512Mi}}
+          readinessProbe: {httpGet: {path: /readyz, port: 8080}, periodSeconds: 2}
+          volumeMounts:
+            - {name: socket, mountPath: /run/opaque, readOnly: true}
+            - {name: evidence, mountPath: /workspace}
+            - {name: workload, mountPath: /etc/demo/workload, readOnly: true}
+            - {name: ax, mountPath: /ax}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - {name: socket, persistentVolumeClaim: {claimName: broker-socket}}
+        - {name: evidence, persistentVolumeClaim: {claimName: evidence}}
+        - {name: workload, configMap: {name: workload}}
+        - {name: ax, emptyDir: {}}
+        - {name: tmp, emptyDir: {medium: Memory}}

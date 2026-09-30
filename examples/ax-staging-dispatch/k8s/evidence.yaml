@@ -1,0 +1,25 @@
+# One-off export pod. Applied only after the broker Deployment is scaled to zero,
+# so the ledger has no live writer. It runs as the broker custody account, signs
+# the export with a disposable key kept in memory, and is deleted afterwards.
+apiVersion: v1
+kind: Pod
+metadata: {name: evidence}
+spec:
+  restartPolicy: Never
+  automountServiceAccountToken: false
+  securityContext: {runAsUser: 7581, runAsGroup: 7581, runAsNonRoot: true}
+  containers:
+    - name: export
+      image: ${IMAGE}
+      imagePullPolicy: Never
+      command: [sleep, infinity]
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities: {drop: [ALL]}
+      volumeMounts:
+        - {name: state, mountPath: /var/lib/opaque, subPath: custody}
+        - {name: out, mountPath: /out}
+  volumes:
+    - {name: state, persistentVolumeClaim: {claimName: broker-state}}
+    - {name: out, emptyDir: {medium: Memory}}

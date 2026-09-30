@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: broker}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector: {matchLabels: {app: opaque-broker}}
+  template:
+    metadata: {labels: {app: opaque-broker}}
+    spec:
+      automountServiceAccountToken: false
+      # Trusted protocol client needs broker process visibility. AX has its own pod.
+      shareProcessNamespace: true
+      initContainers:
+        - name: install
+          image: ${IMAGE}
+          imagePullPolicy: Never
+          command: [sh, /opt/demo/broker/install.sh]
+          volumeMounts:
+            - {name: state, mountPath: /state}
+            - {name: state, mountPath: /var/lib/opaque, subPath: custody}
+            - {name: socket, mountPath: /run/opaque}
+            - {name: config, mountPath: /input, readOnly: true}
+            # The GitHub token reaches only this trusted init container, which
+            # installs it as a broker-owned private file in custody.
+            - {name: github-token, mountPath: /input/github, readOnly: true}
+            - {name: policy, mountPath: /etc/opaque/policy, readOnly: true}
+            - {name: broker-tmp, mountPath: /broker-tmp}
+            - {name: human-tmp, mountPath: /human-tmp}
+      containers:
+        - name: broker
+          image: ${IMAGE}
+          imagePullPolicy: Never
+          command: [setpriv, --reset-env, --reuid=7581, --regid=7581, --groups=7987,
+                    '--bounding-set=-all,+sys_ptrace', '--inh-caps=+sys_ptrace', '--ambient-caps=+sys_ptrace',
+                    env, OPAQUE_CONFIG=/var/lib/opaque/config.toml, RUST_LOG=info, /opt/opaque/opaqued]
+          securityContext:
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL], add: [SETUID, SETGID, SETPCAP, SYS_PTRACE]}
+          volumeMounts:
+            - {name: state, mountPath: /var/lib/opaque, subPath: custody}
+            - {name: socket, mountPath: /run/opaque}
+            - {name: policy, mountPath: /etc/opaque/policy, readOnly: true}
+            - {name: broker-tmp, mountPath: /tmp}
+        - name: identity-client
+          image: ${IMAGE}
+          imagePullPolicy: Never
+          command: [sleep, infinity]
+          securityContext:
+            runAsUser: 7582
+            runAsGroup: 7987
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: socket, mountPath: /run/opaque, readOnly: true}
+            - {name: human-tmp, mountPath: /tmp}
+        - name: fixture
+          image: ${IMAGE}
+          imagePullPolicy: Never
+          command: [python3, -B, /opt/demo/fixtures/services.py]
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: state, mountPath: /fixture, subPath: fixture}
+      volumes:
+        - {name: state, persistentVolumeClaim: {claimName: broker-state}}
+        - {name: socket, persistentVolumeClaim: {claimName: broker-socket}}
+        - {name: config, configMap: {name: '${CONFIG_MAP}'}}
+        - {name: github-token, secret: {secretName: github-token, defaultMode: 0400}}
+        - {name: policy, configMap: {name: authority-policy}}
+        - {name: broker-tmp, emptyDir: {medium: Memory}}
+        - {name: human-tmp, emptyDir: {medium: Memory}}

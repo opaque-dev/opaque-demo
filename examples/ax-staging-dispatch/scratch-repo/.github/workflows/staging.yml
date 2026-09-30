@@ -1,0 +1,28 @@
+# Dispatch target for the Opaque AX staging-dispatch demo. Every input is
+# optional because the Opaque broker sends {"ref": "<branch>"} and no inputs.
+name: staging
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: Optional free text echoed by the run
+        required: false
+        default: ""
+permissions: {}
+jobs:
+  echo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      NOTE: ${{ inputs.note }}
+    steps:
+      - name: Echo dispatch inputs and run identity
+        run: |
+          echo "workflow=staging"
+          echo "run_id=${GITHUB_RUN_ID}"
+          echo "run_number=${GITHUB_RUN_NUMBER}"
+          echo "run_attempt=${GITHUB_RUN_ATTEMPT}"
+          echo "ref=${GITHUB_REF}"
+          echo "sha=${GITHUB_SHA}"
+          echo "actor=${GITHUB_ACTOR}"
+          echo "note=${NOTE:-<none>}"
